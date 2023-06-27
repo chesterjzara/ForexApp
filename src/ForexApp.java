@@ -1,24 +1,25 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 public class ForexApp {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		Connection conn = null;
-		String url = "jdbc:sqlite:C:\\data\\test_db";
-		String sql = "SELECT * FROM users";
+		//Connection conn = null;
+		// String url = "jdbc:sqlite:test_db";
+		// String sql = "SELECT * FROM users";
 		
 		//conn = DriverManager.getConnection(url);
 		DataConnection dc = new DataConnection();
 		UserDAL userDAL = new UserDAL(dc);
 		
-		UserModel testUser = userDAL.retrieveData(123);
+		// Test Retrieving data
+		//UserModel testUser = userDAL.retrieveUser(123);
+		//System.out.println(testUser);
 		
-		System.out.println(testUser);
+		// Test Creating data
+		UserModel newUser = new UserModel(1, 20, "Testguy", "Smith");
+		boolean ret = userDAL.createUser(newUser);
+		
+		System.out.println("Success?: " + ret);
+		
 		
 //		Statement stmt = dc.getConn().createStatement();
 //        ResultSet rs = stmt.executeQuery(sql);
