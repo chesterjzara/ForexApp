@@ -1,4 +1,3 @@
-
 public class ForexApp {
 
 	public static void main(String[] args) {
@@ -9,17 +8,24 @@ public class ForexApp {
 		//conn = DriverManager.getConnection(url);
 		DataConnection dc = new DataConnection();
 		UserDAL userDAL = new UserDAL(dc);
+		CurrencyDAL currencyDAL = new CurrencyDAL(dc);
 		
 		// Test Retrieving data
 		//UserModel testUser = userDAL.retrieveUser(123);
 		//System.out.println(testUser);
 		
 		// Test Creating data
-		UserModel newUser = new UserModel(3, "TestGuy", "Testguy@email.com", "Smith");
-		boolean ret = userDAL.createUser(newUser);
+		int newUserId = 5;
+		if (userDAL.retrieveUser(newUserId) == null) {
+			UserModel newUser = new UserModel(newUserId, "TestGuy", "Testguy@email.com", "Smith");
+			boolean ret = userDAL.createUser(newUser);
+			System.out.println("Created new user: " + ret);
+		} else {
+			System.out.println("No new user");
+		}
 		
-		System.out.println("Success?: " + ret);
-		
+		CurrencyModel currency = currencyDAL.retrieveCurrency(1);
+		System.out.println(currency);
 		
 //		Statement stmt = dc.getConn().createStatement();
 //        ResultSet rs = stmt.executeQuery(sql);

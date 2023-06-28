@@ -1,3 +1,4 @@
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,12 +23,14 @@ public class UserDAL {
 			ResultSet rs = connection.getConn().createStatement().executeQuery(sql);
 			rs.next();
 			
-			int userId = rs.getInt("id");
-			String userName = rs.getString("name");
-			String userEmail = rs.getString("email");
-			String userHashPassword = rs.getString("hashPassword");
-			
-			return new UserModel(userId, userName, userEmail, userHashPassword);
+			if (rs.getInt("id") > 0) {
+				int userId = rs.getInt("id");
+				String userName = rs.getString("name");
+				String userEmail = rs.getString("email");
+				String userHashPassword = rs.getString("hashPassword");
+				
+				return new UserModel(userId, userName, userEmail, userHashPassword);
+			}
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

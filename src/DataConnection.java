@@ -48,9 +48,13 @@ public class DataConnection {
 			if (!tableNames.contains("users")) {
 				String sql = UserDAL.usersTableDDL;
 				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created table in given database...");	// TODO - remove debuggin
+				System.out.println("Created 'users' table in given database...");	// TODO - remove debuggin
 			}
 			
+			if (!tableNames.contains("currency")) {
+				connection.createStatement().executeUpdate(CurrencyDAL.currencyTableDLL);
+				System.out.println("Created 'currency' table in given database...");	//TODO - remove debugging
+			}
 			
 			
 		} catch (SQLException e) {
