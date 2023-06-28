@@ -7,9 +7,9 @@ public class UserDAL {
 	private DataConnection connection;
 	public static String usersTableDDL = "CREATE TABLE users ("
 											+ "id INTEGER PRIMARY KEY,"
-											+ "age INTEGER, "
-											+ "first TEXT, "
-											+ "last TEXT)";
+											+ "name TEXT, "
+											+ "email TEXT, "
+											+ "hashPassword TEXT)";
 	
 	public UserDAL(DataConnection connection) {
         this.connection = connection;
@@ -23,11 +23,11 @@ public class UserDAL {
 			rs.next();
 			
 			int userId = rs.getInt("id");
-			int userAge = rs.getInt("age");
-			String userFirst = rs.getString("first");
-			String userLast = rs.getString("last");
+			String userName = rs.getString("name");
+			String userEmail = rs.getString("email");
+			String userHashPassword = rs.getString("hashPassword");
 			
-			return new UserModel(userId, userAge, userFirst, userLast);
+			return new UserModel(userId, userName, userEmail, userHashPassword);
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -46,9 +46,9 @@ public class UserDAL {
 			
 			PreparedStatement pstmt = this.connection.getConn().prepareStatement(insertSql);
 			pstmt.setInt(1, userInput.getId());
-			pstmt.setInt(2, userInput.getAge());
-			pstmt.setString(3, userInput.getFirst());
-			pstmt.setString(4, userInput.getLast());
+			pstmt.setString(2, userInput.getName());
+			pstmt.setString(3, userInput.getEmail());
+			pstmt.setString(4, userInput.getHashPassword());
 			
 			ret = pstmt.executeUpdate();
 		} catch (SQLException e) {

@@ -15,7 +15,7 @@ public class ForexApp {
 		//System.out.println(testUser);
 		
 		// Test Creating data
-		UserModel newUser = new UserModel(1, 20, "Testguy", "Smith");
+		UserModel newUser = new UserModel(3, "TestGuy", "Testguy@email.com", "Smith");
 		boolean ret = userDAL.createUser(newUser);
 		
 		System.out.println("Success?: " + ret);

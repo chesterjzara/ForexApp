@@ -1,19 +1,15 @@
 
 public class UserModel {
 	private int id;
-	private int age;
-	private String first;
-	private String last;
+	private String name;
+	private String email;
+	private String hashPassword;
 	
-	public UserModel() {
-		
-	}
-	
-	public UserModel(int id, int age, String first, String last) {
+	public UserModel(int id, String name, String email, String hashPassword) {
 		this.setId(id);
-		this.age = age;
-		this.first = first;
-		this.last = last;
+		this.setName(name);
+		this.setEmail(email);
+		this.setHashPassword(hashPassword);
 	}
 
 	public int getId() {
@@ -24,31 +20,31 @@ public class UserModel {
 		this.id = id;
 	}
 	
-	public int getAge() {
-		return age;
+	public String getName() {
+		return name;
 	}
 
-	public void setAge(int age) {
-		this.age = age;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getFirst() {
-		return first;
+	public String getEmail() {
+		return email;
 	}
 
-	public void setFirst(String first) {
-		this.first = first;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
-	public String getLast() {
-		return last;
+	public String getHashPassword() {
+		return hashPassword;
 	}
 
-	public void setLast(String last) {
-		this.last = last;
+	public void setHashPassword(String hashPassword) {
+		this.hashPassword = hashPassword;
 	}
 	
 	public String toString() {
-		return "" + first + " " + last + " [" + id + "] - " + age; 
+		return " " + name + " [" + id + "] - " + email; 
 	}
 }
