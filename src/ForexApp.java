@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class ForexApp {
 
 	public static void main(String[] args) {
@@ -30,7 +32,23 @@ public class ForexApp {
 		
 		// Testing Favorite Lookup and Creation
 		int testFavId = 1;
+		FavoriteModel testFav = favoriteDAL.getFavoriteById(testFavId);
+		System.out.println(testFav);
 		
+		int newFavId = 4;
+		if (favoriteDAL.getFavoriteById(newFavId) == null) {
+			FavoriteModel newFav = new FavoriteModel(newFavId, 4, 13, 15);
+			boolean ret = favoriteDAL.createFavorite(newFav);
+			System.out.println("Created new fav: " + ret);
+		} else {
+			System.out.println("No new fav created");
+		}
+		
+		ArrayList<FavoriteModel> multiResults = new ArrayList<FavoriteModel>();
+		multiResults = favoriteDAL.getFavoritesByUser(3);
+		for (FavoriteModel e : multiResults) {
+			System.out.println(e);
+		}
 		
 		
 //		Statement stmt = dc.getConn().createStatement();

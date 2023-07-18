@@ -34,6 +34,15 @@ public class DataConnection {
 		return connection;
 	}
 	
+	public void closeDataConnection() {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	private static boolean checkTables(Connection connection) {
 		ArrayList<String> tableNames = new ArrayList<String>();

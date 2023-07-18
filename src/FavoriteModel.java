@@ -3,15 +3,15 @@ public class FavoriteModel {
 	private int id;
 	private int userId;
 	private int baseExchId;
-	private int targetExchId;
+	private int tarExchId;
 	
 	public FavoriteModel() {}
 	
-	public FavoriteModel(int id, int userId, int baseExchId, int targetExchId) {
+	public FavoriteModel(int id, int userId, int baseExchId, int tarExchId) {
 		this.setId(id);
 		this.setUserId(userId);
 		this.setBaseExchId(baseExchId);
-		this.setTargetExchId(targetExchId);
+		this.setTarExchId(tarExchId);
 	}
 
 	public int getId() {
@@ -38,16 +38,16 @@ public class FavoriteModel {
 		this.baseExchId = baseExchId;
 	}
 
-	public int getTargetExchId() {
-		return targetExchId;
+	public int getTarExchId() {
+		return tarExchId;
 	}
 
-	public void setTargetExchId(int targetExchId) {
-		this.targetExchId = targetExchId;
+	public void setTarExchId(int tarExchId) {
+		this.tarExchId = tarExchId;
 	}
 	
 	public String toString() {
-		return "From " + baseExchId + " to " + targetExchId + "[" + id 
+		return "From " + baseExchId + " to " + tarExchId + "[" + id 
 				+ "] - " + userId; 
 	}
 	
