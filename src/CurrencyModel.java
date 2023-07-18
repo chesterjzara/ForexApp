@@ -10,6 +10,8 @@ public class CurrencyModel {
 	private double density;
 	private double gdp;
 	
+	public CurrencyModel() {}
+	
 	public CurrencyModel(int id, String name, String acronym, String symbol, String jurisdication,
 			int population, double area, double density, double gdp) {
 		this.setId(id);

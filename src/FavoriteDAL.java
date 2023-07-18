@@ -76,6 +76,16 @@ public class FavoriteDAL {
 		return (ret > 0);
 	}
 	
+	public FavoriteModel updateFavorite(FavoriteModel favInput) {
+		//TODO
+		return null;
+	}
+	
+	public boolean deleteFavorite(int id) {
+		// TODO
+		return false;
+	}
+	
 	private FavoriteModel parseFavoriteResult(ResultSet rs) {
 		FavoriteModel f = new FavoriteModel();
 		try {

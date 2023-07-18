@@ -17,8 +17,31 @@ public class UserDAL {
     }
 	
 	public UserModel getUser(int id) {
-		
 		String sql = "SELECT * FROM USERS u WHERE u.id=" + id;
+		try {
+			ResultSet rs = connection.getConn().createStatement().executeQuery(sql);
+			rs.next();
+			
+			if (rs.getInt("id") > 0) {
+				int userId = rs.getInt("id");
+				String userName = rs.getString("name");
+				String userEmail = rs.getString("email");
+				String userHashPassword = rs.getString("hashPassword");
+				
+				return new UserModel(userId, userName, userEmail, userHashPassword);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public UserModel getUserByEmail(String inEmail) {
+		String sql = "SELECT * FROM USERS u WHERE u.email=" + inEmail;
+
 		try {
 			ResultSet rs = connection.getConn().createStatement().executeQuery(sql);
 			rs.next();
@@ -56,8 +79,17 @@ public class UserDAL {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			
 		}
 		return (ret>0);
+	}
+	
+	public UserModel updateUser(UserModel userInput) {
+		//TODO
+		return null;
+	}
+	
+	public boolean deleteUser(int id) {
+		//TODO
+		return false;
 	}
 }

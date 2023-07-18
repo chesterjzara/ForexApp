@@ -17,7 +17,7 @@ public class ForexApp {
 		//UserModel testUser = userDAL.retrieveUser(123);
 		//System.out.println(testUser);
 		
-		// Test Creating data
+		// Test User DAL
 		int newUserId = 5;
 		if (userDAL.getUser(newUserId) == null) {
 			UserModel newUser = new UserModel(newUserId, "TestGuy", "Testguy@email.com", "Smith");
@@ -27,8 +27,14 @@ public class ForexApp {
 			System.out.println("No new user");
 		}
 		
-		CurrencyModel currency = currencyDAL.retrieveCurrency(1);
+		// Test Currency DAL
+		CurrencyModel currency = currencyDAL.getCurrency(1);
 		System.out.println(currency);
+		System.out.println("Finding all currencies...");
+		ArrayList<CurrencyModel> currList = currencyDAL.getCurrencyList();
+		for (CurrencyModel curr : currList) {
+			System.out.println(curr);
+		}
 		
 		// Testing Favorite Lookup and Creation
 		int testFavId = 1;

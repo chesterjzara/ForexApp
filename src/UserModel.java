@@ -6,6 +6,8 @@ public class UserModel {
 	private String email;
 	private String hashPassword;
 	
+	public UserModel() {}
+	
 	public UserModel(int id, String name, String email, String hashPassword) {
 		this.setId(id);
 		this.setName(name);
