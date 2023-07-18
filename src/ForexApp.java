@@ -9,6 +9,7 @@ public class ForexApp {
 		DataConnection dc = new DataConnection();
 		UserDAL userDAL = new UserDAL(dc);
 		CurrencyDAL currencyDAL = new CurrencyDAL(dc);
+		FavoriteDAL favoriteDAL = new FavoriteDAL(dc);
 		
 		// Test Retrieving data
 		//UserModel testUser = userDAL.retrieveUser(123);
@@ -16,7 +17,7 @@ public class ForexApp {
 		
 		// Test Creating data
 		int newUserId = 5;
-		if (userDAL.retrieveUser(newUserId) == null) {
+		if (userDAL.getUser(newUserId) == null) {
 			UserModel newUser = new UserModel(newUserId, "TestGuy", "Testguy@email.com", "Smith");
 			boolean ret = userDAL.createUser(newUser);
 			System.out.println("Created new user: " + ret);
@@ -26,6 +27,11 @@ public class ForexApp {
 		
 		CurrencyModel currency = currencyDAL.retrieveCurrency(1);
 		System.out.println(currency);
+		
+		// Testing Favorite Lookup and Creation
+		int testFavId = 1;
+		
+		
 		
 //		Statement stmt = dc.getConn().createStatement();
 //        ResultSet rs = stmt.executeQuery(sql);

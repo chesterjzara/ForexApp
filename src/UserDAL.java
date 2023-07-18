@@ -16,7 +16,7 @@ public class UserDAL {
         this.connection = connection;
     }
 	
-	public UserModel retrieveUser(int id) {
+	public UserModel getUser(int id) {
 		
 		String sql = "SELECT * FROM USERS u WHERE u.id=" + id;
 		try {
