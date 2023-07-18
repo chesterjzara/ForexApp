@@ -43,11 +43,10 @@ public class UserDAL {
 	public boolean createUser(UserModel userInput) {
 		String insertSql = "INSERT INTO users VALUES (?, ?, ?, ?);";
 		int ret = 0;
+		
 		try {
-//			String sql = "INSERT INTO users VALUES (12, 20, 'Test', 'Tester');";
-//			ret = connection.getConn().createStatement().executeUpdate(sql);
-			
-			PreparedStatement pstmt = this.connection.getConn().prepareStatement(insertSql);
+			PreparedStatement pstmt = this.connection.getConn()
+					.prepareStatement(insertSql);
 			pstmt.setInt(1, userInput.getId());
 			pstmt.setString(2, userInput.getName());
 			pstmt.setString(3, userInput.getEmail());
