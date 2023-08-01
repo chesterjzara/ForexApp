@@ -1,4 +1,8 @@
+package Forex.App;
+
 import java.util.ArrayList;
+import Models.*;
+import DAL.*;
 
 public class ForexApp {
 
@@ -43,18 +47,18 @@ public class ForexApp {
 		
 		int newFavId = 4;
 		if (favoriteDAL.getFavoriteById(newFavId) == null) {
-			FavoriteModel newFav = new FavoriteModel(newFavId, 4, 13, 15);
+			FavoriteModel newFav = new FavoriteModel(newFavId, 13, 15);
 			boolean ret = favoriteDAL.createFavorite(newFav);
 			System.out.println("Created new fav: " + ret);
 		} else {
 			System.out.println("No new fav created");
 		}
 		
-		ArrayList<FavoriteModel> multiResults = new ArrayList<FavoriteModel>();
-		multiResults = favoriteDAL.getFavoritesByUser(3);
-		for (FavoriteModel e : multiResults) {
-			System.out.println(e);
-		}
+//		ArrayList<FavoriteModel> multiResults = new ArrayList<FavoriteModel>();
+//		multiResults = favoriteDAL.getFavoritesByUser(3);
+//		for (FavoriteModel e : multiResults) {
+//			System.out.println(e);
+//		}
 		
 		
 //		Statement stmt = dc.getConn().createStatement();

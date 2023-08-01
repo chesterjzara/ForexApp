@@ -1,4 +1,4 @@
-
+package Models;
 
 public class UserModel {
 	private int id;

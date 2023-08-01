@@ -1,7 +1,10 @@
+package DAL;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import Models.*;
 
 public class UserDAL {
 

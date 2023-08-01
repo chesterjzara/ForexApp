@@ -1,3 +1,4 @@
+package Models;
 
 public class CurrencyModel {
 	private int id;
