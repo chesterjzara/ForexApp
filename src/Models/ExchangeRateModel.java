@@ -3,23 +3,23 @@ package Models;
 import java.sql.Date;
 
 public class ExchangeRateModel {
-	private int id;
+	private int exchangeId;
 	private Date date;
-	private int interval;
-	private int currencyId;
+	private int symbolId;
+	private String frequency;
 	private double open;
 	private double close;
 	private double high;
 	private double low;
 	private double volume;
 	
-	public ExchangeRateModel(int id, Date date, int interval, int currencyId, 
+	public ExchangeRateModel(int id, Date date, String frequency, int symbolId, 
 			double open, double close, double high, double low, double volume) {
 		super();
-		this.id = id;
+		this.exchangeId = id;
 		this.date = date;
-		this.interval = interval;
-		this.currencyId = currencyId;
+		this.frequency = frequency;
+		this.symbolId = symbolId;
 		this.open = open;
 		this.close = close;
 		this.high = high;
@@ -29,12 +29,12 @@ public class ExchangeRateModel {
 
 	public ExchangeRateModel() {}
 
-	public int getId() {
-		return id;
+	public int getExchangeId() {
+		return exchangeId;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setExchangeId(int id) {
+		this.exchangeId = id;
 	}
 
 	public Date getDate() {
@@ -45,20 +45,20 @@ public class ExchangeRateModel {
 		this.date = date;
 	}
 
-	public int getInterval() {
-		return interval;
+	public String getFrequency() {
+		return frequency;
 	}
 
-	public void setInterval(int interval) {
-		this.interval = interval;
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
 	}
 
-	public int getCurrencyId() {
-		return currencyId;
+	public int getSymbolId() {
+		return symbolId;
 	}
 
-	public void setCurrencyId(int currencyId) {
-		this.currencyId = currencyId;
+	public void setSymbolId(int symbolId) {
+		this.symbolId = symbolId;
 	}
 
 	public double getOpen() {
@@ -102,6 +102,6 @@ public class ExchangeRateModel {
 	}
 
 	public String toString() {
-		return "" + id + " on " + date + " by " + interval; 
+		return "" + exchangeId + " on " + date + " by " + frequency; 
 	}
 }

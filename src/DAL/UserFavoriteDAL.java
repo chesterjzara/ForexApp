@@ -9,6 +9,14 @@ import Models.*;
 public class UserFavoriteDAL {
 	private DataConnection connection;
 	
+	public static final String userFavoriteTableDLL = 
+			"CREATE TABLE user_favorites ("
+					+ "user_favorite_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,"
+					+ "user_id INTEGER REFERENCES users (user_id),"
+				    + "base_exchange_id INTEGER REFERENCES exchange (exchange_id),"
+				    + "target_exchange_id INTEGER REFERENCES exchange (exchange_id),"
+				    + "date_added TEXT);";
+	
 	public UserFavoriteDAL(DataConnection connection) {
         this.connection = connection;
     }
