@@ -27,9 +27,6 @@ public class DataConnection {
 			connection = DriverManager.getConnection(dbFilePath);
 			// Note - don't need to check if the DB exists - SQLite will create new DB
 			
-//			// Check which tables exist - create if missing!
-//			checkTables(connection);
-			
 		} catch(SQLException e) {    
 			System.out.println(e.getMessage());
         }
@@ -50,67 +47,5 @@ public class DataConnection {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	
-	public static boolean checkCreateTables(Connection connection) {
-		ArrayList<String> tableNames = new ArrayList<String>();
-		try {
-			ResultSet rs = connection.getMetaData().getTables(null, null, null, null);
-			while (rs.next()) {
-		        tableNames.add(rs.getString("TABLE_NAME"));
-		        // System.out.println("Check table - " + rs.getString("TABLE_NAME"));	
-			}
-			
-			// Create currency table
-			if (!tableNames.contains("currency")) {
-				String sql = CurrencyDAL.currencyTableDLL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created 'currency' table in given database...");
-			} else {
-				System.out.println("Table exists for 'currency'");
-			}
-			
-			// Create exchange table
-			if (!tableNames.contains("exchange_rate")) {
-				String sql = ExchangeRateDAL.exchangeRateTableDLL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created 'exchange_rate' table in given database...");
-			} else {
-				System.out.println("Table exists for 'exchange_rate'");
-			}
-			
-			// Create users_favorites table
-			if (!tableNames.contains("user_favorites")) {
-				String sql = UserFavoriteDAL.userFavoriteTableDLL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created 'user_favorites' table in given database...");	
-			} else {
-				System.out.println("Table exists for 'user_favorites'");
-			}
-			
-			// Create users table
-			if (!tableNames.contains("users")) {
-				String sql = UserDAL.usersTableDDL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created 'users' table in given database...");	
-			} else {
-				System.out.println("Table exists for 'users'");
-			}
-			
-			// Create users table
-			if (!tableNames.contains("zip_code")) {
-				String sql = ZipCodeDAL.zipCodeTableDDL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("Created 'zip_code' table in given database...");	
-			} else {
-				System.out.println("Table exists for 'zip_code'");
-			}
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return true;
 	}
 }
