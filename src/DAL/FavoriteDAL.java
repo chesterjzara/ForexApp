@@ -1,3 +1,5 @@
+// TODO - delete - probably don't need
+
 package DAL;
 
 import java.sql.PreparedStatement;
@@ -7,6 +9,7 @@ import java.util.ArrayList;
 
 import Models.*;
 
+@Deprecated 
 public class FavoriteDAL {
 	private DataConnection connection;
 	

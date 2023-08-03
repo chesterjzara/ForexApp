@@ -24,8 +24,8 @@ public class ForexApp {
 		// Test User DAL
 		int newUserId = 5;
 		if (userDAL.getUser(newUserId) == null) {
-			UserModel newUser = new UserModel(newUserId, "TestGuy", "Testguy@email.com", "Smith");
-			boolean ret = userDAL.createUser(newUser);
+			UserModel newUser = new UserModel(newUserId, "TestGuy", "Testguy@email.com", "Smith", null);
+			UserModel ret = userDAL.createUser(newUser);
 			System.out.println("Created new user: " + ret);
 		} else {
 			System.out.println("No new user");

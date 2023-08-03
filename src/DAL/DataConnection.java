@@ -15,6 +15,8 @@ public class DataConnection {
 	private String dbFilePath; 
 	private Connection connection;
 	
+	public ZipCodeDAL zipCodeDAL;
+	
 	public DataConnection() {		
 		// Edit .env file to set DATABASE_URL
 		Dotenv dotenv = Dotenv.load();
@@ -26,6 +28,7 @@ public class DataConnection {
 			// Create DB connection - save to DataConnection object
 			connection = DriverManager.getConnection(dbFilePath);
 			// Note - don't need to check if the DB exists - SQLite will create new DB
+			zipCodeDAL = new ZipCodeDAL(this);
 			
 		} catch(SQLException e) {    
 			System.out.println(e.getMessage());

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public class ExchangeRateModel {
 	private int exchangeId;
-	private LocalDate date;
+	private LocalDate date;		//In Java as a LocalDate, in SQLite as text in ISO format
 	private int symbolId;
 	private String frequency;
 	private double open;
