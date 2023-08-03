@@ -56,7 +56,6 @@ public class ForexAppSetup {
 				connection.createStatement().executeUpdate(sql);
 				System.out.println("- Created 'currency' table in given database...");
 				handleCurrencyCsvFiles();
-				
 			} else {
 				System.out.println("- Table exists for 'currency'");
 			}
