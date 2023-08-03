@@ -1,5 +1,6 @@
 package Forex.App;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import Models.*;
 import DAL.*;
@@ -29,13 +30,13 @@ public class ForexAppTest {
 		userDAL = new UserDAL(dc);
 		zipCodeDAL = new ZipCodeDAL(dc);
 		
-		// Testing user registration ops
+		// Testing user registration/login/logout
 		testUserRegistration();
-		
-		// Testing user login operations
 		testUserLogin();
-		
 		testUserLogout();
+		
+		// ExchangeRate lookup and display
+		testExchangeRateInput();
 		
 		// Close out DB connection
 		dc.closeDataConnection();
@@ -96,5 +97,80 @@ public class ForexAppTest {
 		loginUser = null;
 		// Switch UI back to the login/reg screen
 		System.out.println("- Logout successful, goodbye!");
+	}
+
+	public static void testExchangeRateInput() {
+		System.out.println("\nTesting Exchange Rate Input Ops:");
+		// Get frequency from UI
+		String frequency = "day";
+		
+		// Get base and target currencies (in UI we'd need to check if one or the other is already selected)
+		CurrencyModel baseSymbol = null;
+		CurrencyModel targetSymbol = null;
+		int totalCurrency = 18;
+		
+		// Base - SQL code to return a list of all currencies available
+		ArrayList<CurrencyModel> currencyList = currencyDAL.getCurrencyList();
+		if (targetSymbol != null) {
+			for (int i = 0; i < currencyList.size(); i++) {
+				if (currencyList.get(i).getSymbolId() == targetSymbol.getSymbolId()) {
+					currencyList.remove(i);
+					i --;
+				}
+			}
+		}
+		baseSymbol = currencyList.get(0);
+		if (currencyList.size() == totalCurrency) {
+			System.out.println("- Found " + totalCurrency +" base currencies");
+		} else { System.out.println("- Failed to find " + totalCurrency + " base currencies"); }
+		
+		// Target - SQL code to return all currencies except base
+		currencyList = currencyDAL.getCurrencyList();
+		if (baseSymbol != null) {
+			for (int i = 0; i < currencyList.size(); i++) {
+				if (currencyList.get(i).getSymbolId() == baseSymbol.getSymbolId()) {
+					currencyList.remove(i);
+					i --;
+				}
+			}
+		}
+		targetSymbol = currencyList.get(1);
+		if (currencyList.size() == totalCurrency - 1) {
+			System.out.println("- Found "+ (totalCurrency -1) +" target currencies");
+		} else { System.out.println("- Failed to find "+ (totalCurrency -1) +" target currencies"); }
+		
+		// Get end date from start date (hard-coded at 7)
+		// SQL code in exchange_rate table to group and return dates for base
+		int numDates = 8;
+		String freqStr = "week";
+		LocalDate startDate = LocalDate.of(2019, 8, 5);
+		ArrayList<LocalDate> dates = exchangeRateDAL.getNextDatesForSymbolId(
+				startDate, baseSymbol.getSymbolId(), targetSymbol.getSymbolId(),
+				freqStr, numDates);
+		System.out.print("- Found " + numDates + " dates from "+ startDate + ": ");
+		System.out.print(dates);
+		System.out.println();
+		
+		testRetrieveExchangeRates(freqStr, dates, baseSymbol.getSymbolId(), 
+				targetSymbol.getSymbolId());
+	}
+	
+	public static void testRetrieveExchangeRates(String freq, ArrayList<LocalDate> dates,
+			int baseSym, int tarSym) {
+		System.out.println("\nTesting Exchange Rate Data Retrieval:");
+		// Pass in input elements above... freq, date range, 2 symbol_ids
+		
+		// SQL query for base > ArrayList of exchange_rate rows
+		ArrayList<ExchangeRateModel> baseExRates = exchangeRateDAL
+				.getExchangeRatesOverDateRange(baseSym, freq, dates);
+		System.out.println("- Found Base ExRates: " + baseExRates);
+		
+		// TODO - SQL query for target > ArrayList of exchange_rate rows
+		ArrayList<ExchangeRateModel> targetExRates = exchangeRateDAL
+				.getExchangeRatesOverDateRange(tarSym, freq, dates);
+		System.out.println("- Found TargetExRates: " + targetExRates);
+		
+		// TODO - compute display element > inverse base x target for each field
+		
 	}
 }
