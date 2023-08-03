@@ -1,12 +1,27 @@
 package DAL;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import Models.*;
 
 public class ExchangeRateDAL {
 	private DataConnection connection;
+	
+	public static final String exchangeRateTableDLL = 
+			"CREATE TABLE exchange_rate ("
+					+ "exchange_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,"
+					+ "date        TEXT,"
+					+ "symbol_id   INTEGER REFERENCES currency (symbol_id),"
+					+ "frequency   TEXT,"
+					+ "open        NUMERIC,"
+					+ "close       NUMERIC,"
+					+ "high        NUMERIC,"
+					+ "low         NUMERIC,"
+					+ "volume      NUMERIC);";		
 	
 	public ExchangeRateDAL(DataConnection connection) {
         this.connection = connection;
@@ -30,13 +45,46 @@ public class ExchangeRateDAL {
 		return null;
 	}
 	
+	public boolean createExchangeRate(ExchangeRateModel e) {
+		// Null for first value to auto increment symbol_id
+		String insertSql = "INSERT INTO exchange_rate "
+				+ "VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);";
+		int ret = 0;
+		
+		try {
+			PreparedStatement p = this.connection.getConn()
+					.prepareStatement(insertSql);
+//			java.sql.Date sqlDate = new java.sql.Date(e.getDate().getTime());
+//			p.setDate(1, sqlDate);
+			p.setString(1, e.getDate().toString());
+			p.setInt(2, e.getSymbolId());
+			p.setString(3, e.getFrequency());
+			p.setDouble(4, e.getOpen());
+			p.setDouble(5, e.getClose());
+			p.setDouble(6, e.getHigh());
+			p.setDouble(7, e.getLow());
+			p.setDouble(8, e.getVolume());
+			
+			ret = p.executeUpdate();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return (ret>0);
+	}
+	
 	private ExchangeRateModel parseExchangeRateResult(ResultSet rs) {
 		ExchangeRateModel e = new ExchangeRateModel();
 		try {
-			e.setId(rs.getInt("id"));
-			e.setDate(rs.getDate("date"));
-			e.setInterval(rs.getInt("interval"));
-			e.setCurrencyId(rs.getInt("currencyId"));
+			e.setExchangeId(rs.getInt("exchange_id"));
+			
+			String dateString = rs.getString("date");
+			DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate date = LocalDate.parse(dateString, inputFormatter);
+			e.setDate(date);
+			
+			e.setSymbolId(rs.getInt("symbol_id"));
+			e.setFrequency(rs.getString("frequency"));
 			e.setOpen(rs.getDouble("open"));
 			e.setClose(rs.getDouble("close"));
 			e.setHigh(rs.getDouble("high"));

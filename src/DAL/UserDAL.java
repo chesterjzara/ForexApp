@@ -9,11 +9,13 @@ import Models.*;
 public class UserDAL {
 
 	private DataConnection connection;
-	public static String usersTableDDL = "CREATE TABLE users ("
-											+ "id INTEGER PRIMARY KEY,"
-											+ "name TEXT, "
-											+ "email TEXT, "
-											+ "hashPassword TEXT)";
+	public static String usersTableDDL = 
+			"CREATE TABLE users ("
+					+ "user_id  INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,"
+					+ "name TEXT, "
+					+ "email TEXT, "
+					+ "password TEXT,"
+					+ "zip_code INTEGER);";
 	
 	public UserDAL(DataConnection connection) {
         this.connection = connection;
