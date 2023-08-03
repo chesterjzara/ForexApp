@@ -1,10 +1,11 @@
 package Models;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 public class ExchangeRateModel {
 	private int exchangeId;
-	private Date date;
+	private LocalDate date;
 	private int symbolId;
 	private String frequency;
 	private double open;
@@ -13,7 +14,7 @@ public class ExchangeRateModel {
 	private double low;
 	private double volume;
 	
-	public ExchangeRateModel(int id, Date date, String frequency, int symbolId, 
+	public ExchangeRateModel(int id, LocalDate date, String frequency, int symbolId, 
 			double open, double close, double high, double low, double volume) {
 		super();
 		this.exchangeId = id;
@@ -37,11 +38,11 @@ public class ExchangeRateModel {
 		this.exchangeId = id;
 	}
 
-	public Date getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		this.date = date;
 	}
 

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -25,7 +26,7 @@ public class ForexAppSetup {
 		System.out.println("Created new connection to: " + dc.getDbFilePath() + "\n");
 		
 		System.out.println("Checking and creating tables if they are missing...");
-		dc.checkCreateTables(dc.getConn());
+		DataConnection.checkCreateTables(dc.getConn());
 		
 		// Create DAL objects to update records
 		currencyDAL = new CurrencyDAL(dc);
@@ -57,8 +58,6 @@ public class ForexAppSetup {
 		for (File csvFile : monthExRateFiles) {
 			loadExRateDataFromCSV(csvFile, "month");
         }
-        
-
 	}
 	
 	private static ArrayList<File> ListCSVFiles(String dirPath) {
@@ -120,15 +119,17 @@ public class ForexAppSetup {
 			// Skip one row to avoid header
 			reader.readNext();
 			
+			DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			// Parse each line of the CSV into a CurrencyModel object
 			while((nextLine = reader.readNext()) != null) {
 				ExchangeRateModel e = new ExchangeRateModel();
 				e.setExchangeId(0);
 				
-//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//				Date convertedCurrentDate = sdf.parse(nextLine[0]);
-//				e.setDate((java.sql.Date) convertedCurrentDate);
+				// Take YYYY-MM-DD format turn into LocalDate
+				LocalDate date = LocalDate.parse(nextLine[0], inputFormatter);
+				e.setDate(date);
 				
+				// Lookup symbol_id in currency table from symbol
 				String symbol = nextLine[1];
 				int symbolId = currencyDAL.getCurrencyIdFromSymbol(symbol);
 				e.setSymbolId(symbolId); // Need to find ID based on symbol via DB check
@@ -140,7 +141,6 @@ public class ForexAppSetup {
 				e.setLow(Double.parseDouble(nextLine[5]));
 				e.setClose(Double.parseDouble(nextLine[6]));
 				e.setVolume(Double.parseDouble(nextLine[7]));
-
 				
 				// Save the CurrencyModel obj to the DB!
 				exchangeRateDAL.createExchangeRate(e);

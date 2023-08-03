@@ -3,6 +3,8 @@ package DAL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import Models.*;
 
@@ -52,7 +54,9 @@ public class ExchangeRateDAL {
 		try {
 			PreparedStatement p = this.connection.getConn()
 					.prepareStatement(insertSql);
-			p.setDate(1, e.getDate());
+//			java.sql.Date sqlDate = new java.sql.Date(e.getDate().getTime());
+//			p.setDate(1, sqlDate);
+			p.setString(1, e.getDate().toString());
 			p.setInt(2, e.getSymbolId());
 			p.setString(3, e.getFrequency());
 			p.setDouble(4, e.getOpen());
@@ -73,7 +77,12 @@ public class ExchangeRateDAL {
 		ExchangeRateModel e = new ExchangeRateModel();
 		try {
 			e.setExchangeId(rs.getInt("exchange_id"));
-			e.setDate(rs.getDate("date"));
+			
+			String dateString = rs.getString("date");
+			DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate date = LocalDate.parse(dateString, inputFormatter);
+			e.setDate(date);
+			
 			e.setSymbolId(rs.getInt("symbol_id"));
 			e.setFrequency(rs.getString("frequency"));
 			e.setOpen(rs.getDouble("open"));
