@@ -33,7 +33,11 @@ public class UserDAL {
 				String userEmail = rs.getString("email");
 				String userHashPassword = rs.getString("hashPassword");
 				
-				return new UserModel(userId, userName, userEmail, userHashPassword);
+				int zipCodeId = rs.getInt("zip_code");
+				ZipCodeModel zipCode = connection.zipCodeDAL.getZipCode(zipCodeId);
+				
+				
+				return new UserModel(userId, userName, userEmail, userHashPassword, zipCode);
 			}
 			
 		} catch (SQLException e) {
@@ -45,47 +49,64 @@ public class UserDAL {
 	}
 	
 	public UserModel getUserByEmail(String inEmail) {
-		String sql = "SELECT * FROM USERS u WHERE u.email=" + inEmail;
+		String sql = "SELECT * FROM USERS u WHERE u.email='" + inEmail + "'";
 
 		try {
 			ResultSet rs = connection.getConn().createStatement().executeQuery(sql);
 			rs.next();
 			
-			if (rs.getInt("id") > 0) {
-				int userId = rs.getInt("id");
+			if (rs.getInt("user_id") > 0) {
+				int userId = rs.getInt("user_id");
 				String userName = rs.getString("name");
 				String userEmail = rs.getString("email");
-				String userHashPassword = rs.getString("hashPassword");
+				String userHashPassword = rs.getString("password");
+				ZipCodeModel zipCode = connection.zipCodeDAL.getZipCode(rs.getInt("zip_code"));
 				
-				return new UserModel(userId, userName, userEmail, userHashPassword);
+				return new UserModel(userId, userName, userEmail, userHashPassword, zipCode);
 			}
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		return null;
 	}
 	
-	public boolean createUser(UserModel userInput) {
-		String insertSql = "INSERT INTO users VALUES (?, ?, ?, ?);";
-		int ret = 0;
+	public UserModel checkUserLogin(String email, String password) {
+		UserModel loginUser = getUserByEmail(email);
+		
+		if (loginUser != null) {
+			if (loginUser.getHashPassword().equals(password)) {
+				return loginUser;
+			}
+		}
+		return null;
+	}
+	
+	public UserModel createUser(UserModel userInput) {
+		String insertSql = "INSERT INTO users VALUES (NULL, ?, ?, ?, ?);";
 		
 		try {
 			PreparedStatement pstmt = this.connection.getConn()
 					.prepareStatement(insertSql);
-			pstmt.setInt(1, userInput.getId());
-			pstmt.setString(2, userInput.getName());
-			pstmt.setString(3, userInput.getEmail());
-			pstmt.setString(4, userInput.getHashPassword());
+//			pstmt.setInt(1, userInput.getId());
+			pstmt.setString(1, userInput.getName());
+			pstmt.setString(2, userInput.getEmail());
+			pstmt.setString(3, userInput.getHashPassword());
+			pstmt.setInt(4, userInput.getZipCode().getZipCode());
 			
-			ret = pstmt.executeUpdate();
+			pstmt.executeUpdate();
+			ResultSet rs = pstmt.getGeneratedKeys();
+			if (rs.next()) {
+				int newUserId = rs.getInt("user_id");
+				userInput.setId(newUserId);
+				return userInput;
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return (ret>0);
+		return null;
 	}
 	
 	public UserModel updateUser(UserModel userInput) {

@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 import Models.*;
 
@@ -41,6 +42,39 @@ public class ExchangeRateDAL {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static final String exchangeRatesOverDateRange = 
+			"SELECT * FROM exchange_rate\r\n"
+			+ "WHERE date >= ? AND symbol_id = ? AND frequency = ?\r\n"
+			+ "LIMIT ?";
+	
+	public ArrayList<ExchangeRateModel> getExchangeRatesOverDateRange(int symbolId,
+			String freq, ArrayList<LocalDate> dates) {
+		ArrayList<ExchangeRateModel> ret = new ArrayList<ExchangeRateModel>();
+		
+		try {
+			PreparedStatement p = this.connection.getConn()
+					.prepareStatement(exchangeRatesOverDateRange);
+			String dateStr = dates.get(0).toString();
+			p.setString(1, dateStr);
+			p.setInt(2, symbolId);
+			p.setString(3, freq);
+			p.setInt(4, dates.size());
+			ResultSet rs = p.executeQuery();
+			
+			while (rs.next()) {
+				ExchangeRateModel e = parseExchangeRateResult(rs);
+				ret.add(e);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		if (ret.size() > 0) {
+			return ret; 
 		}
 		return null;
 	}
@@ -97,4 +131,50 @@ public class ExchangeRateDAL {
 		return e;
 	}
 	
+	// 1 start date, 2 base sym, 3 tar sym 
+	public static final String exchangeRateDateRange = 
+			"WITH check_symbol as (\n"
+			+ "    SELECT date, symbol_id\n"
+			+ "    FROM exchange_rate e\n"
+			+ "    WHERE e.date >= ? AND (symbol_id = ? or symbol_id = ?) AND frequency = ? \n"
+			+ "    GROUP BY date, symbol_id \n"
+			+ "    ORDER BY date \n"
+			+ "),\n"
+			+ "check_count as (\n"
+			+ "    SELECT date, count(symbol_id) as count\n"
+			+ "    FROM check_symbol\n"
+			+ "    GROUP BY date\n"
+			+ ")\n"
+			+ "SELECT date FROM check_count WHERE count = 2 LIMIT ?;";
+	
+	public ArrayList<LocalDate> getNextDatesForSymbolId(LocalDate date, int baseSym, 
+			int tarSym, String frequency, int numDays) {
+		ArrayList<LocalDate> retDateList = new ArrayList<LocalDate>();
+		
+		try {
+			PreparedStatement p = this.connection.getConn()
+					.prepareStatement(exchangeRateDateRange);
+			String dateStr = date.toString();
+			p.setString(1, dateStr);
+			p.setInt(2, baseSym);
+			p.setInt(3, tarSym);
+			p.setString(4, frequency);
+			p.setInt(5, numDays);
+			ResultSet rs = p.executeQuery();
+			
+			while (rs.next()) {
+				String dateString = rs.getString("date");
+				DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate localDate = LocalDate.parse(dateString, inputFormatter);
+				retDateList.add(localDate);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		if (retDateList.size() > 0) {
+			return retDateList; 
+		}
+		return null;
+	}
 }

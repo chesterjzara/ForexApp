@@ -1,5 +1,8 @@
+// TODO - delete - probably don't need
+
 package Models;
 
+@Deprecated 
 public class FavoriteModel {
 	private int id;
 	private int baseExchId;
