@@ -311,23 +311,25 @@ public class Main extends Application {
     			}
     			return c.getSymbol();
     		}
-    		
     		@Override
             public CurrencyModel fromString(String string) {
                 return null;
             }
     	});
+    	
     	// Put base currency and label in an HBox to line up
     	baseCurrChoice.getItems().addAll(currencyChoices);
     	HBox bCurrHBox = new HBox(baseCurrencyLabel, baseCurrChoice);
     	bCurrHBox.setSpacing( 10.0d );
     	bCurrHBox.setAlignment(Pos.CENTER );
     	bCurrHBox.setPadding( new Insets(2) );
+    	baseCurrChoice.setOnAction(event -> bCurrency = baseCurrChoice.getValue());
     	
     	// Target Currency Selection
     	Label targetCurrencyLabel = new Label("Target Currency:");
     	ChoiceBox<CurrencyModel> targetCurrChoice = new ChoiceBox<>();
     	targetCurrChoice.getItems().addAll(currencyChoices);
+    	targetCurrChoice.setOnAction(event -> tCurrency = targetCurrChoice.getValue());
     	
     	// Put target currency and label in an HBox to line up
     	HBox tCurrHBox = new HBox(targetCurrencyLabel, targetCurrChoice);
