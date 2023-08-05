@@ -98,7 +98,7 @@ public class UserDAL {
 			pstmt.executeUpdate();
 			ResultSet rs = pstmt.getGeneratedKeys();
 			if (rs.next()) {
-				int newUserId = rs.getInt("user_id");
+				int newUserId = rs.getInt(1);
 				userInput.setId(newUserId);
 				return userInput;
 			}
