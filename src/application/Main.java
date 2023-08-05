@@ -65,7 +65,6 @@ public class Main extends Application {
 	     
 	    	//Create Topbar Section Vboxes
 	    	
-	    	
 	    	VBox toolBarVBoxLeft = createToolBarVBoxLeft();
 	    	VBox toolBarVBoxCenter = createToolBarVBoxCenter();
 	    	VBox toolBarVBoxRight = createToolBarVBoxRight();
