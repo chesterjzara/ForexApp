@@ -65,6 +65,7 @@ public class Main extends Application {
 	public Scene mainScene;
 	public Scene regScene;
 	public GridPane exchangeRateTable;
+
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -435,7 +436,6 @@ public class Main extends Application {
     		inEndDate = endField.getValue();
     	});
     	
-    	
     	return toolBarVBoxCenter;
     }
     
@@ -453,6 +453,7 @@ public class Main extends Application {
 //        	exchangeRateTable.getChildren().clear();
         	updateExchangeRateTable(exchangeRateTable);
         });
+
 
     	//Set elements as children of VBox
     	
