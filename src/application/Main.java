@@ -64,7 +64,6 @@ public class Main extends Application {
 	    private HBox createToolBarHBox() {
 	     
 	    	//Create Topbar Section Vboxes
-	    	
 	    	VBox toolBarVBoxLeft = createToolBarVBoxLeft();
 	    	VBox toolBarVBoxCenter = createToolBarVBoxCenter();
 	    	VBox toolBarVBoxRight = createToolBarVBoxRight();
