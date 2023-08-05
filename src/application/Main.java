@@ -14,6 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
@@ -34,6 +36,7 @@ import javafx.stage.Stage;
 
 import Models.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +56,9 @@ public class Main extends Application {
 	public UserModel loggedInUser;
 	public CurrencyModel bCurrency;
 	public CurrencyModel tCurrency;
+	public String inInterval;
+	public LocalDate inStartDate; 
+	public LocalDate inEndDate; 
 	
 	public Scene mainScene;
 	public Scene regScene;
@@ -348,6 +354,82 @@ public class Main extends Application {
     private VBox createToolBarVBoxCenter() {
     	
     	VBox toolBarVBoxCenter = new VBox();
+    	
+    	// Interval Selection 
+    	Label intervalLabel = new Label("Interval:");
+    	ObservableList <String> intervalOptions = 
+    			FXCollections.observableArrayList("day", "week", "month");
+    	ChoiceBox<String> intervalChoice = new ChoiceBox<String>(intervalOptions);
+    	
+    	HBox intervalBox = new HBox(intervalLabel, intervalChoice);
+    	intervalBox.setSpacing( 10.0d );
+    	intervalBox.setAlignment(Pos.CENTER );
+    	intervalBox.setPadding( new Insets(2) );
+    	toolBarVBoxCenter.getChildren().add(intervalBox);
+    	
+    	
+    	// End Date Selection
+    	Label endLabel = new Label("End Date:");
+    	DatePicker endField = new DatePicker();
+    	endField.setDisable(true);
+    	HBox endBox = new HBox(endLabel, endField);
+    	endBox.setSpacing( 10.0d );
+    	endBox.setAlignment(Pos.CENTER );
+    	endBox.setPadding( new Insets(2) );
+    	
+    	
+    	// Start Date Selection
+    	Label startLabel = new Label("Start Date:");
+    	DatePicker startField = new DatePicker();
+    	LocalDate initialDate = LocalDate.of(2019, 6, 30);
+    	startField.setValue(initialDate);
+    	startField.setDayCellFactory(field -> new DateCell() {
+    		public void updateItem(LocalDate date, boolean empty) {
+    			super.updateItem(date, empty);
+    			LocalDate firstDate = LocalDate.of(2019, 6, 30);
+    			LocalDate lastDate = LocalDate.of(2023, 7, 6);
+    			boolean inRange = date.compareTo(lastDate) < 0 &&
+    					date.compareTo(firstDate) > 0;
+
+    			setDisable(empty || !inRange);
+    		}
+    	});
+    	HBox startBox = new HBox(startLabel, startField);
+    	startBox.setSpacing( 10.0d );
+    	startBox.setAlignment(Pos.CENTER );
+    	startBox.setPadding( new Insets(2) );
+    	
+    	toolBarVBoxCenter.getChildren().add(startBox);
+    	toolBarVBoxCenter.getChildren().add(endBox);
+    	
+    	// Event Handlers
+    	// Interval Events
+    	intervalChoice.setOnAction(event -> {
+    		inInterval = intervalChoice.getValue();
+    		startField.setValue(initialDate);
+    		inStartDate = initialDate;
+    		endField.setValue(null);
+    		inEndDate = null;
+    	});
+    	
+    	startField.setOnAction(e -> {
+    		if (bCurrency == null || tCurrency == null || inStartDate == null
+    				|| inInterval.isBlank()) {
+    			return;
+    		}
+    		
+    		System.out.println(startField.getValue());
+    		inStartDate = startField.getValue();
+    		
+    		// Get valid end date based on start date:
+    		ArrayList<LocalDate> dates = exchangeRateDAL.getNextDatesForSymbolId(
+    				inStartDate, bCurrency.getSymbolId(), tCurrency.getSymbolId(),
+    				inInterval, 7);
+    		
+    		endField.setValue(dates.get(dates.size()-1));
+    		inEndDate = endField.getValue();
+    	});
+    	
     	
     	return toolBarVBoxCenter;
     }
