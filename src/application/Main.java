@@ -14,6 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
@@ -34,6 +36,7 @@ import javafx.stage.Stage;
 
 import Models.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,9 +56,16 @@ public class Main extends Application {
 	public UserModel loggedInUser;
 	public CurrencyModel bCurrency;
 	public CurrencyModel tCurrency;
+	public String inInterval;
+	public LocalDate inStartDate; 
+	public LocalDate inEndDate; 
+	ArrayList<LocalDate> inDates;
+	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
 	
 	public Scene mainScene;
 	public Scene regScene;
+	public GridPane exchangeRateTable;
+
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -67,7 +77,7 @@ public class Main extends Application {
             HBox toolBarHBox = createToolBarHBox();               
             
             //Create exchange rate table
-            GridPane exchangeRateTable = createExchangeRateTable();
+            exchangeRateTable = createExchangeRateTable();
      
             //Set element placements in root
             root.setTop(toolBarHBox);
@@ -349,6 +359,83 @@ public class Main extends Application {
     	
     	VBox toolBarVBoxCenter = new VBox();
     	
+    	// Interval Selection 
+    	Label intervalLabel = new Label("Interval:");
+    	ObservableList <String> intervalOptions = 
+    			FXCollections.observableArrayList("day", "week", "month");
+    	ChoiceBox<String> intervalChoice = new ChoiceBox<String>(intervalOptions);
+    	
+    	HBox intervalBox = new HBox(intervalLabel, intervalChoice);
+    	intervalBox.setSpacing( 10.0d );
+    	intervalBox.setAlignment(Pos.CENTER );
+    	intervalBox.setPadding( new Insets(2) );
+    	toolBarVBoxCenter.getChildren().add(intervalBox);
+    	
+    	
+    	// End Date Selection
+    	Label endLabel = new Label("End Date:");
+    	DatePicker endField = new DatePicker();
+    	endField.setDisable(true);
+    	HBox endBox = new HBox(endLabel, endField);
+    	endBox.setSpacing( 10.0d );
+    	endBox.setAlignment(Pos.CENTER );
+    	endBox.setPadding( new Insets(2) );
+    	
+    	
+    	// Start Date Selection
+    	Label startLabel = new Label("Start Date:");
+    	DatePicker startField = new DatePicker();
+    	LocalDate initialDate = LocalDate.of(2019, 6, 30);
+    	startField.setValue(initialDate);
+    	startField.setDayCellFactory(field -> new DateCell() {
+    		public void updateItem(LocalDate date, boolean empty) {
+    			super.updateItem(date, empty);
+    			LocalDate firstDate = LocalDate.of(2019, 6, 30);
+    			LocalDate lastDate = LocalDate.of(2023, 7, 6);
+    			boolean inRange = date.compareTo(lastDate) < 0 &&
+    					date.compareTo(firstDate) > 0;
+
+    			setDisable(empty || !inRange);
+    		}
+    	});
+    	HBox startBox = new HBox(startLabel, startField);
+    	startBox.setSpacing( 10.0d );
+    	startBox.setAlignment(Pos.CENTER );
+    	startBox.setPadding( new Insets(2) );
+    	
+    	toolBarVBoxCenter.getChildren().add(startBox);
+    	toolBarVBoxCenter.getChildren().add(endBox);
+    	
+    	// Event Handlers
+    	// Interval Events
+    	intervalChoice.setOnAction(event -> {
+    		inInterval = intervalChoice.getValue();
+    		startField.setValue(initialDate);
+    		inStartDate = initialDate;
+    		endField.setValue(null);
+    		inEndDate = null;
+    	});
+    	
+    	startField.setOnAction(e -> {
+    		if (bCurrency == null || tCurrency == null || inStartDate == null
+    				|| inInterval.isBlank()) {
+    			return;
+    		}
+    		
+    		System.out.println(startField.getValue());
+    		inStartDate = startField.getValue();
+    		
+    		// Get valid end date based on start date:
+    		ArrayList<LocalDate> dates = exchangeRateDAL.getNextDatesForSymbolId(
+    				inStartDate, bCurrency.getSymbolId(), tCurrency.getSymbolId(),
+    				inInterval, 7);
+    		
+    		inDates = dates;
+    		
+    		endField.setValue(dates.get(dates.size()-1));
+    		inEndDate = endField.getValue();
+    	});
+    	
     	return toolBarVBoxCenter;
     }
     
@@ -359,30 +446,109 @@ public class Main extends Application {
     	
     	// Create button elements 
         Button favoriteButton = new Button("Favorite");
-       
+        
+        Button addButton = new Button("➕ Add Exchange Rate");
+        addButton.setOnAction(event -> {
+        	System.out.println("Add currency exchange!");
+//        	exchangeRateTable.getChildren().clear();
+        	updateExchangeRateTable(exchangeRateTable);
+        });
+
 
     	//Set elements as children of VBox
     	
         toolBarVBoxRight.getChildren().add(favoriteButton);
+        toolBarVBoxRight.getChildren().add(addButton);
 
     	return toolBarVBoxRight;
     }
     
+    private void updateExchangeRateTable(GridPane table) {
+    	// Insert new Exchange Rate
+    	ArrayList<ExchangeRateModel> baseExRates = exchangeRateDAL
+    			.getExchangeRatesOverDateRange(bCurrency.getSymbolId(), 
+    					inInterval, inDates);
+		System.out.println("- Found Base ExRates: " + baseExRates);
+		
+		ArrayList<ExchangeRateModel> targetExRates = exchangeRateDAL
+				.getExchangeRatesOverDateRange(tCurrency.getSymbolId(), 
+						inInterval, inDates);
+		System.out.println("- Found TargetExRates: " + targetExRates);
+		
+		// Save the new row to our table data
+		ExchangeRateRow newRow = new ExchangeRateRow(baseExRates, targetExRates);
+		tableRowsData.add(newRow);
+    	
+    	// Clear Table
+    	table.getChildren().clear();
+    	// Add Header with dates
+    	addTableDatesHeader(table);
+    	
+    	// Loop through the table data and add a row to the grid for each
+    	int row = 1;
+    	for (int i = 0; i < tableRowsData.size(); i++) {
+    		ExchangeRateRow currentRow = tableRowsData.get(i);
+    		ArrayList<ExchangeRateModel> calcValues = currentRow.calcValues;
+    		
+    		Label buttonLabel = new Label("Add butons here");
+    		table.add(buttonLabel, 0, row);
+    		
+    		int col = 1;
+    		for (int j = 0; j < calcValues.size(); j++) {
+    			// Just do open for now...
+    			double open = calcValues.get(j).getOpen();
+    			Label dataLabel = new Label(Double.toString(open));
+    			table.add(dataLabel, col, row);
+    			col++;
+    		}
+    		
+    		// Add right side delete button
+    		Label deleteLabel = new Label("X");
+    		table.add(deleteLabel, 8, row);
+    		
+    		row++;
+        }
+    }
+    
+    private void addTableDatesHeader(GridPane table) {
+    	int dateCounter = 0;
+    	ArrayList<LocalDate> dates = inDates;
+    	for (int col = 1; col < 8; col++) {
+        	Label label = new Label(dates.get(dateCounter).toString());
+        	dateCounter++;
+        	table.add(label, col, 0);
+        }
+    }
+    
+    private void addTableDatesEmptyHeader(GridPane table) {
+    	// Create Empty exchange rate table
+    	for (int col = 1; col < 8; col++) {
+        	Label label = new Label("Date " + col);
+        	table.add(label, col, 0);
+        }
+    }
+    
     private GridPane createExchangeRateTable() {
         GridPane gridPane = new GridPane();
-
-        // Create exchange rate table
-        for (int row = 0; row < 6; row++) {
-            for (int col = 0; col < 7; col++) {
-            	
-            	//TODO Get data from query to display here
-            	
-            	//Placeholder display
-                Label label = new Label("R" + (row + 1) + "C" + (col + 1));
-               
-                gridPane.add(label, col, row);
-            }
-        }
+        
+        // Add Empty Date Headers
+        addTableDatesEmptyHeader(gridPane);
+        
+        // TODO - add existing user favorites instead of blanks
+        
+//        for (int row = 1; row < 6; row++) {
+//            // 9 columns to account for button columns on left and right ends 
+//        	for (int col = 0; col < 9; col++) {
+//            	
+//            	//TODO Get data from query to display here
+//            	
+//            	//Placeholder display
+//        		String labelStr = "R" + (row + 1) + "C" + (col + 1);
+//                Label label = new Label(labelStr);
+//               
+//                gridPane.add(label, col, row);
+//            }
+//        }
 
         // Set the vertical and horizontal gaps between cells
         gridPane.setVgap(10);
