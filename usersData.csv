@@ -1,0 +1,11 @@
+user_id,name,email,password,zip_code
+1,John Doe,john@example.com,pass123,12345
+2,Jane Smith,jane@example.com,secret456,54321
+3,Michael Brown,michael@example.com,mypass789,67890
+4,Emily Johnson,emily@example.com,987pass,45678
+5,Robert Lee,robert@example.com,abc123,98765
+6,Lisa Davis,lisa@example.com,456xyz,34567
+7,James Wilson,james@example.com,qwerty789,87654
+8,Mary Miller,mary@example.com,p@ssw0rd,23456
+9,David Taylor,david@example.com,my123pass,76543
+10,Sarah Brown,sarah@example.com,abcd567,12345
