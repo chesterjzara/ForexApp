@@ -25,7 +25,7 @@ public class UserFavoriteDAL {
     }
 	
 	public ArrayList<UserFavoriteModel> getUserFavoritesByUserId(int userId) {
-		String sql = "SELECT * FROM user_favorites uf WHERE uf.userId=" + userId;
+		String sql = "SELECT * FROM user_favorites uf WHERE uf.user_id=" + userId;
 		ArrayList<UserFavoriteModel> userFavoriteList = new ArrayList<UserFavoriteModel>();
 		try {
 			ResultSet rs = connection.getConn().createStatement()
