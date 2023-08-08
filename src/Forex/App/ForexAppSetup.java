@@ -111,7 +111,7 @@ public class ForexAppSetup {
 	}
 	
 	public static void handleZipCodeCsvFiles() {
-		String dirPath = "CurrencyDataClean/zip_code/";
+		String dirPath = "SeedData/zip_code/";
 		ArrayList<File> zipFiles = ListCSVFiles(dirPath);
 		
 		System.out.println("  - Loading zip code file data...");
@@ -121,7 +121,7 @@ public class ForexAppSetup {
 	}
 	
 	public static void handleCurrencyCsvFiles() {
-		String dirPath = "CurrencyDataClean/currency/";
+		String dirPath = "SeedData/currency/";
 		ArrayList<File> currencyFiles = ListCSVFiles(dirPath);
 		
 		System.out.println("  - Loading currency file data...");
@@ -131,7 +131,7 @@ public class ForexAppSetup {
 	}
 	
 	public static void handleExchangeCsvFiles() {
-		String dirPath = "CurrencyDataClean/";
+		String dirPath = "SeedData/";
 		ArrayList<File> currencyFiles = ListCSVFiles(dirPath);
 		ArrayList<File> dayExRateFiles = ListCSVFiles(dirPath + "day/");
 		ArrayList<File> weekExRateFiles = ListCSVFiles(dirPath + "week/");
