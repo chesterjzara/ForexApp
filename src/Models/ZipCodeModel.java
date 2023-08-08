@@ -2,18 +2,22 @@ package Models;
 
 public class ZipCodeModel {
 	private int zipCode;
-	private String city;
 	private String state;
+	private String stateAbbr;
+	private String country;
+	private String city;
 	
 	public ZipCodeModel() {
 		super();
 	}
 
-	public ZipCodeModel(int zipCode, String city, String state) {
+	public ZipCodeModel(int zipCode, String state, String stateAbbr, String country, String city) {
 		super();
 		this.zipCode = zipCode;
-		this.city = city;
 		this.state = state;
+		this.stateAbbr = stateAbbr;
+		this.country = country;
+		this.city = city;
 	}
 
 	/**
@@ -56,6 +60,22 @@ public class ZipCodeModel {
 	 */
 	public void setState(String state) {
 		this.state = state;
+	}
+
+	public String getStateAbbr() {
+		return stateAbbr;
+	}
+
+	public void setStateAbbr(String stateAbbr) {
+		this.stateAbbr = stateAbbr;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
 	}
 	
 	
