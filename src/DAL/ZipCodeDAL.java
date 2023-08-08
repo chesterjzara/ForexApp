@@ -12,9 +12,9 @@ public class ZipCodeDAL {
 	public static String zipCodeTableDDL = 
 			"CREATE TABLE zip_code ("
 					+ "zip_code INTEGER PRIMARY KEY NOT NULL UNIQUE,"
-					+ "state    TEXT"
-					+ "state_abbr    TEXT"
-					+ "country    TEXT"
+					+ "state    TEXT,"
+					+ "state_abbr    TEXT,"
+					+ "country    TEXT,"
 					+ "city     TEXT);";
 	
 	public ZipCodeDAL(DataConnection connection) {

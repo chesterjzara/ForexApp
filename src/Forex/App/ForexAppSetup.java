@@ -23,6 +23,7 @@ public class ForexAppSetup {
 	public static DataConnection dc;
 	public static CurrencyDAL currencyDAL;
 	public static ExchangeRateDAL exchangeRateDAL;
+	public static ZipCodeDAL zipCodeDAL;
 	
 	public static void main(String[] args) {
 		dc = new DataConnection();
@@ -31,6 +32,7 @@ public class ForexAppSetup {
 		// Create DAL objects to update records
 		currencyDAL = new CurrencyDAL(dc);
 		exchangeRateDAL = new ExchangeRateDAL(dc);
+		zipCodeDAL = new ZipCodeDAL(dc);
 		
 		// Create new tables and parse in the CSV file data
 		System.out.println("Checking and creating tables if they are missing...");
@@ -88,11 +90,12 @@ public class ForexAppSetup {
 				System.out.println("- Table exists for 'users'");
 			}
 			
-			// Create users table
+			// Create zip_code table
 			if (!tableNames.contains("zip_code")) {
 				String sql = ZipCodeDAL.zipCodeTableDDL;
 				connection.createStatement().executeUpdate(sql);
 				System.out.println("- Created 'zip_code' table in given database...");	
+				handleZipCodeCsvFiles();
 			} else {
 				System.out.println("- Table exists for 'zip_code'");
 			}
@@ -101,11 +104,24 @@ public class ForexAppSetup {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.out.println("\nSetup Complete!");
+		
 		return true;
 	}
 	
+	public static void handleZipCodeCsvFiles() {
+		String dirPath = "CurrencyDataClean/zip_code/";
+		ArrayList<File> zipFiles = ListCSVFiles(dirPath);
+		
+		System.out.println("  - Loading zip code file data...");
+		for (File csvFile : zipFiles) {
+            loadZipDataFromCSV(csvFile);
+        }
+	}
+	
 	public static void handleCurrencyCsvFiles() {
-		String dirPath = "CurrencyDataClean/";
+		String dirPath = "CurrencyDataClean/currency/";
 		ArrayList<File> currencyFiles = ListCSVFiles(dirPath);
 		
 		System.out.println("  - Loading currency file data...");
@@ -150,6 +166,34 @@ public class ForexAppSetup {
 			}
 		}
 		return csvFilesList;
+	}
+	
+	private static void loadZipDataFromCSV(File csvFile) {
+		try {
+			// Setup CSV reader
+			CSVReader reader = new CSVReader(new BufferedReader(new FileReader(csvFile)));
+			String[] nextLine;
+			
+			// Skip one row to avoid header
+			reader.readNext();
+			
+			// Parse each line of the CSV into a ZipCodeModel object
+			while((nextLine = reader.readNext()) != null) {
+				ZipCodeModel z = new ZipCodeModel();
+				z.setZipCode(Integer.parseInt(nextLine[0]));
+				z.setState(nextLine[1]);
+				z.setStateAbbr(nextLine[2]);
+				z.setCountry(nextLine[3]);
+				z.setCity(nextLine[4]);
+				
+				// Save the ZipCodeModel obj to the DB!
+				zipCodeDAL.createZipCode(z);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void loadCurrencyDataFromCSV(File csvFile) {
