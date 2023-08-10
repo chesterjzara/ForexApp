@@ -24,6 +24,9 @@ public class ForexAppSetup {
 	public static CurrencyDAL currencyDAL;
 	public static ExchangeRateDAL exchangeRateDAL;
 	public static ZipCodeDAL zipCodeDAL;
+	public static UserDAL userDAL;
+	public static UserFavoriteDAL userFavoriteDAL;
+	public static FriendDAL friendDAL;
 	
 	public static void main(String[] args) {
 		dc = new DataConnection();
@@ -33,6 +36,9 @@ public class ForexAppSetup {
 		currencyDAL = new CurrencyDAL(dc);
 		exchangeRateDAL = new ExchangeRateDAL(dc);
 		zipCodeDAL = new ZipCodeDAL(dc);
+		userDAL = new UserDAL(dc);
+		userFavoriteDAL = new UserFavoriteDAL(dc);
+		friendDAL = new FriendDAL(dc);
 		
 		// Create new tables and parse in the CSV file data
 		System.out.println("Checking and creating tables if they are missing...");
@@ -72,24 +78,6 @@ public class ForexAppSetup {
 				System.out.println("- Table exists for 'exchange_rate'");
 			}
 			
-			// Create users_favorites table
-			if (!tableNames.contains("user_favorites")) {
-				String sql = UserFavoriteDAL.userFavoriteTableDLL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("- Created 'user_favorites' table in given database...");	
-			} else {
-				System.out.println("- Table exists for 'user_favorites'");
-			}
-			
-			// Create users table
-			if (!tableNames.contains("users")) {
-				String sql = UserDAL.usersTableDDL;
-				connection.createStatement().executeUpdate(sql);
-				System.out.println("- Created 'users' table in given database...");	
-			} else {
-				System.out.println("- Table exists for 'users'");
-			}
-			
 			// Create zip_code table
 			if (!tableNames.contains("zip_code")) {
 				String sql = ZipCodeDAL.zipCodeTableDDL;
@@ -100,6 +88,35 @@ public class ForexAppSetup {
 				System.out.println("- Table exists for 'zip_code'");
 			}
 			
+			// Create users table
+			if (!tableNames.contains("users")) {
+				String sql = UserDAL.usersTableDDL;
+				connection.createStatement().executeUpdate(sql);
+				System.out.println("- Created 'users' table in given database...");	
+				handleUserCsvFiles();
+			} else {
+				System.out.println("- Table exists for 'users'");
+			}
+			
+			// Create users_favorites table
+			if (!tableNames.contains("user_favorites")) {
+				String sql = UserFavoriteDAL.userFavoriteTableDLL;
+				connection.createStatement().executeUpdate(sql);
+				System.out.println("- Created 'user_favorites' table in given database...");
+				handleUserFavoritesCsvFiles();
+			} else {
+				System.out.println("- Table exists for 'user_favorites'");
+			}
+			
+			// Create Friends table
+			if(!tableNames.contains("friend_bridge")) {
+				String sql = FriendDAL.friendTableDLL;
+				connection.createStatement().executeUpdate(sql);
+				System.out.println("- Created 'friend_bridge' table in given database...");
+				handleFriendCsvFiles();
+			} else {
+				System.out.println("- Table exists for 'friend_bridge'");
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,6 +126,37 @@ public class ForexAppSetup {
 		
 		return true;
 	}
+	
+	public static void handleUserCsvFiles() {
+		String dirPath = "SeedData/users/";
+		ArrayList<File> files = ListCSVFiles(dirPath);
+		
+		System.out.println("  - Loading user file data...");
+		for (File csvFile : files) {
+            loadUserDataFromCSV(csvFile);
+        }
+	}
+	
+	public static void handleUserFavoritesCsvFiles() {
+		String dirPath = "SeedData/favorites/";
+		ArrayList<File> files = ListCSVFiles(dirPath);
+		
+		System.out.println("  - Loading favorites file data...");
+		for (File csvFile : files) {
+            loadFavoriteDataFromCSV(csvFile);
+        }
+	}
+	
+	public static void handleFriendCsvFiles() {
+		String dirPath = "SeedData/friends/";
+		ArrayList<File> files = ListCSVFiles(dirPath);
+		
+		System.out.println("  - Loading friends file data...");
+		for (File csvFile : files) {
+            loadFriendDataFromCSV(csvFile);
+        }
+	}
+	
 	
 	public static void handleZipCodeCsvFiles() {
 		String dirPath = "SeedData/zip_code/";
@@ -166,6 +214,85 @@ public class ForexAppSetup {
 			}
 		}
 		return csvFilesList;
+	}
+	
+	private static void loadUserDataFromCSV(File csvFile) {
+		try {
+			// Setup CSV reader
+			CSVReader reader = new CSVReader(new BufferedReader(new FileReader(csvFile)));
+			String[] nextLine;
+			
+			// Skip one row to avoid header
+			reader.readNext();
+			
+			// Parse each line of the CSV into a ZipCodeModel object
+			while((nextLine = reader.readNext()) != null) {
+				UserModel u = new UserModel();
+				u.setId(Integer.parseInt(nextLine[0]));
+				u.setName(nextLine[1]);
+				u.setEmail(nextLine[2]);
+				u.setHashPassword(nextLine[3]);
+				u.setZipCodeId(Integer.parseInt(nextLine[4]));
+				
+				// Save the UserModel obj to the DB!
+				userDAL.createUser(u);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void loadFavoriteDataFromCSV(File csvFile) {
+		try {
+			// Setup CSV reader
+			CSVReader reader = new CSVReader(new BufferedReader(new FileReader(csvFile)));
+			String[] nextLine;
+			
+			// Skip one row to avoid header
+			reader.readNext();
+			
+			// Parse each line of the CSV into a ZipCodeModel object
+			while((nextLine = reader.readNext()) != null) {
+				UserFavoriteModel uf = new UserFavoriteModel();
+				uf.setUserFavoriteId(Integer.parseInt(nextLine[0]));
+				uf.setUserId(Integer.parseInt(nextLine[1]));
+				uf.setBaseExchangeRateId(Integer.parseInt(nextLine[2]));
+				uf.setTargetExchangeRateId(Integer.parseInt(nextLine[3]));
+				
+				// Take YYYY-MM-DD format turn into LocalDate
+				DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate date = LocalDate.parse(nextLine[4], inputFormatter);
+				uf.setDateAdded(date);
+				
+				// Save the UserFavoriteModel obj to the DB!
+				userFavoriteDAL.createUserFavorite(uf);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void loadFriendDataFromCSV(File csvFile) {
+		try {
+			// Setup CSV reader
+			CSVReader reader = new CSVReader(new BufferedReader(new FileReader(csvFile)));
+			String[] nextLine;
+			
+			// Skip one row to avoid header
+			reader.readNext();
+			
+			// Parse each line of the CSV into a ZipCodeModel object
+			while((nextLine = reader.readNext()) != null) {
+				FriendModel f = new FriendModel();
+				f.setUserId(Integer.parseInt(nextLine[0]));
+				f.setFriendId(Integer.parseInt(nextLine[1]));
+				
+				// Save the UserModel obj to the DB!
+				friendDAL.createFriend(f);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void loadZipDataFromCSV(File csvFile) {

@@ -5,6 +5,7 @@ public class UserModel {
 	private String name;
 	private String email;
 	private String hashPassword;
+	private int zipCodeId;
 	private ZipCodeModel zipCode;
 	
 	public UserModel() {}
@@ -16,6 +17,15 @@ public class UserModel {
 		this.setEmail(email);
 		this.setHashPassword(hashPassword);
 		this.setZipCode(zipCode);
+	}
+	
+	public UserModel(int id, String name, String email, String hashPassword, 
+			int zipCodeId) {
+		this.setId(id);
+		this.setName(name);
+		this.setEmail(email);
+		this.setHashPassword(hashPassword);
+		this.setZipCodeId(zipCodeId);
 	}
 
 	public int getId() {
@@ -50,6 +60,14 @@ public class UserModel {
 		this.hashPassword = hashPassword;
 	}
 	
+	public int getZipCodeId() {
+		return zipCodeId;
+	}
+
+	public void setZipCodeId(int zipCodeId) {
+		this.zipCodeId = zipCodeId;
+	}
+
 	public ZipCodeModel getZipCode() {
 		return zipCode;
 	}

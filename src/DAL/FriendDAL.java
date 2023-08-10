@@ -13,9 +13,10 @@ public class FriendDAL {
 	private DataConnection connection;
 	
 	public static final String friendTableDLL = 
-			"CREATE TABLE friend_bridge"
-			+ "user_id INTEGER PRIMARY KEY NOT NULL,"
-			+ "friend_id INTEGER REFERENCES users (user_id));";
+			"CREATE TABLE friend_bridge ("
+			+ "user_id INTEGER  REFERENCES users (user_id),"
+			+ "friend_id INTEGER REFERENCES users (user_id),"
+			+ "PRIMARY KEY (user_id, friend_id));";
 	
 	public FriendDAL(DataConnection connection) {
         this.connection = connection;
