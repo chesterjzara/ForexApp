@@ -12,8 +12,10 @@ public class ZipCodeDAL {
 	public static String zipCodeTableDDL = 
 			"CREATE TABLE zip_code ("
 					+ "zip_code INTEGER PRIMARY KEY NOT NULL UNIQUE,"
-					+ "city     TEXT,"
-					+ "state    TEXT);";
+					+ "state    TEXT,"
+					+ "state_abbr    TEXT,"
+					+ "country    TEXT,"
+					+ "city     TEXT);";
 	
 	public ZipCodeDAL(DataConnection connection) {
         this.connection = connection;
@@ -43,14 +45,16 @@ public class ZipCodeDAL {
 			return checkZip;
 		}
 		
-		String insertSql = "INSERT INTO zip_code VALUES (?, ?, ?);";
+		String insertSql = "INSERT INTO zip_code VALUES (?, ?, ?, ?, ?);";
 		int ret = 0;
 		try {
 			PreparedStatement pstmt = this.connection.getConn()
 					.prepareStatement(insertSql);
 			pstmt.setInt(1, zipCode.getZipCode());
-			pstmt.setString(2, zipCode.getCity());
-			pstmt.setString(3, zipCode.getState());
+			pstmt.setString(2, zipCode.getState());
+			pstmt.setString(3, zipCode.getStateAbbr());
+			pstmt.setString(4, zipCode.getCountry());
+			pstmt.setString(5, zipCode.getCity());
 			
 			ret = pstmt.executeUpdate();
 			if (ret>0) {
@@ -67,8 +71,10 @@ public class ZipCodeDAL {
 		ZipCodeModel z = new ZipCodeModel();
 		try {
 			z.setZipCode(rs.getInt("zip_code"));
-			z.setCity(rs.getString("city"));
 			z.setState(rs.getString("state"));
+			z.setStateAbbr(rs.getString("state_abbr"));
+			z.setCountry(rs.getString("country"));
+			z.setCity(rs.getString("city"));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

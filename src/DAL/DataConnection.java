@@ -16,6 +16,7 @@ public class DataConnection {
 	private Connection connection;
 	
 	public ZipCodeDAL zipCodeDAL;
+	public UserDAL userDAL;
 	
 	public DataConnection() {		
 		// Edit .env file to set DATABASE_URL
@@ -29,6 +30,7 @@ public class DataConnection {
 			connection = DriverManager.getConnection(dbFilePath);
 			// Note - don't need to check if the DB exists - SQLite will create new DB
 			zipCodeDAL = new ZipCodeDAL(this);
+			userDAL = new UserDAL(this);
 			
 		} catch(SQLException e) {    
 			System.out.println(e.getMessage());

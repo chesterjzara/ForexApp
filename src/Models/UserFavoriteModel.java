@@ -1,45 +1,34 @@
 package Models;
 
+import java.time.LocalDate;
+
 public class UserFavoriteModel {
-	private int id;
-	private int favoriteId;
-	private FavoriteModel favorite;
+	private int userFavoriteId;
 	private int userId;
 	private UserModel user;
+	private int baseExchangeRateId;
+	private ExchangeRateModel baseExchangeRate;
+	private int targetExchangeRateId;
+	private ExchangeRateModel targetExchangeRate;
+	private LocalDate dateAdded;
 	
 	public UserFavoriteModel() {}
 
-	public UserFavoriteModel(int id, int favoriteId, FavoriteModel favorite, int userId, UserModel user) {
-		super();
-		this.id = id;
-		this.favoriteId = favoriteId;
-		this.favorite = favorite;
+	public UserFavoriteModel(int userFavoriteId, int userId, int baseExchangeRateId, 
+			int targetExchangeRateId, LocalDate dateAdded) {
+		this.userFavoriteId = userFavoriteId;
 		this.userId = userId;
-		this.user = user;
+		this.baseExchangeRateId = baseExchangeRateId;
+		this.targetExchangeRateId = targetExchangeRateId;
+		this.dateAdded = dateAdded;
 	}
 	
-	public int getId() {
-		return id;
+	public int getUserFavoriteId() {
+		return userFavoriteId;
 	}
 
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public int getFavoriteId() {
-		return favoriteId;
-	}
-
-	public void setFavoriteId(int favoriteId) {
-		this.favoriteId = favoriteId;
-	}
-
-	public FavoriteModel getFavorite() {
-		return favorite;
-	}
-
-	public void setFavorite(FavoriteModel favorite) {
-		this.favorite = favorite;
+	public void setUserFavoriteId(int userFavoriteId) {
+		this.userFavoriteId = userFavoriteId;
 	}
 
 	public int getUserId() {
@@ -56,5 +45,48 @@ public class UserFavoriteModel {
 
 	public void setUser(UserModel user) {
 		this.user = user;
-	}	
+	}
+
+	public int getBaseExchangeRateId() {
+		return baseExchangeRateId;
+	}
+
+	public void setBaseExchangeRateId(int baseExchangeRateId) {
+		this.baseExchangeRateId = baseExchangeRateId;
+	}
+
+	public ExchangeRateModel getBaseExchangeRate() {
+		return baseExchangeRate;
+	}
+
+	public void setBaseExchangeRate(ExchangeRateModel baseExchangeRate) {
+		this.baseExchangeRate = baseExchangeRate;
+	}
+
+	public int getTargetExchangeRateId() {
+		return targetExchangeRateId;
+	}
+
+	public void setTargetExchangeRateId(int targetExchangeRateId) {
+		this.targetExchangeRateId = targetExchangeRateId;
+	}
+
+	public ExchangeRateModel getTargetExchangeRate() {
+		return targetExchangeRate;
+	}
+
+	public void setTargetExchangeRate(ExchangeRateModel targetExchangeRate) {
+		this.targetExchangeRate = targetExchangeRate;
+	}
+
+	public LocalDate getDateAdded() {
+		return dateAdded;
+	}
+
+	public void setDateAdded(LocalDate dateAdded) {
+		this.dateAdded = dateAdded;
+	}
+
+	
+	
 }

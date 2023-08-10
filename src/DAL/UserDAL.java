@@ -34,10 +34,10 @@ public class UserDAL {
 				String userHashPassword = rs.getString("hashPassword");
 				
 				int zipCodeId = rs.getInt("zip_code");
-				ZipCodeModel zipCode = connection.zipCodeDAL.getZipCode(zipCodeId);
+//				ZipCodeModel zipCode = connection.zipCodeDAL.getZipCode(zipCodeId);
 				
 				
-				return new UserModel(userId, userName, userEmail, userHashPassword, zipCode);
+				return new UserModel(userId, userName, userEmail, userHashPassword, zipCodeId);
 			}
 			
 		} catch (SQLException e) {
@@ -93,7 +93,7 @@ public class UserDAL {
 			pstmt.setString(1, userInput.getName());
 			pstmt.setString(2, userInput.getEmail());
 			pstmt.setString(3, userInput.getHashPassword());
-			pstmt.setInt(4, userInput.getZipCode().getZipCode());
+			pstmt.setInt(4, userInput.getZipCodeId());
 			
 			pstmt.executeUpdate();
 			ResultSet rs = pstmt.getGeneratedKeys();
