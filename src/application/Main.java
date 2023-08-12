@@ -11,6 +11,8 @@ import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
@@ -64,34 +66,18 @@ public class Main extends Application {
 	
 	public Scene mainScene;
 	public Scene regScene;
+	public Scene loginScene;
 	public GridPane exchangeRateTable;
 
 	
 	@Override
 	public void start(Stage primaryStage) {
-        try {
-        	//Create root holder
-            BorderPane root = new BorderPane();
+        try {  
             
-           //Call to create elements
-            HBox toolBarHBox = createToolBarHBox();               
-            
-            //Create exchange rate table
-            exchangeRateTable = createExchangeRateTable();
-     
-            //Set element placements in root
-            root.setTop(toolBarHBox);
-            root.setCenter(exchangeRateTable);
-           
-            // Main scene display settings/staging
-            Color scenePaint = new Color(.99, .234, .234, .76);
-            mainScene = new Scene(root, 800, 500);
-            mainScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-            mainScene.setFill(scenePaint);
-            
-            // Login and Register Scenes
-            Scene loginScene = createLoginScene(primaryStage);
+        	// Create Login, Register, Main Scenes - save to global state to track
+            loginScene = createLoginScene(primaryStage);
             regScene = createRegisterScene(primaryStage);
+            mainScene = createMainScene(primaryStage);
 
             // Set initial login Scene onto Stage
             primaryStage.setScene(loginScene);
@@ -102,6 +88,31 @@ public class Main extends Application {
             e.printStackTrace();
         }
     }
+	
+	private Scene createMainScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        // Create page elements
+        HBox toolBarHBox = createToolBarHBox();               
+        exchangeRateTable = createExchangeRateTable();
+        VBox rightDetailPane = createDetailPane();
+        
+        //Create exchange rate table
+ 
+        //Set element placements in root
+        root.setTop(toolBarHBox);
+        root.setCenter(exchangeRateTable);
+        root.setRight(rightDetailPane);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene mainScene = new Scene(root, 800, 500);
+        mainScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        mainScene.setFill(scenePaint);
+        
+        return mainScene;
+	}
 
 	private Scene createLoginScene(Stage primaryStage) {
 		VBox loginRoot = new VBox();
@@ -205,27 +216,27 @@ public class Main extends Application {
         zipBox.setPadding( new Insets(20) );
         regRoot.getChildren().add(zipBox);
         
-        // City Label + Field
-        Label cityLabel = new Label("City:");
-        TextField cityField= new TextField();
-        HBox cityBox = new HBox(cityLabel, cityField);
-        cityBox.setSpacing( 10.0d );
-        cityBox.setAlignment(Pos.CENTER );
-        cityBox.setPadding( new Insets(20) );
-        regRoot.getChildren().add(cityBox);
-        
-        // State Label + Field
-        Label stateLabel = new Label("State:");
-        TextField stateField= new TextField();
-        HBox stateBox = new HBox(stateLabel, stateField);
-        stateBox.setSpacing( 10.0d );
-        stateBox.setAlignment(Pos.CENTER );
-        stateBox.setPadding( new Insets(20) );
-        regRoot.getChildren().add(stateBox);
+//        // City Label + Field
+//        Label cityLabel = new Label("City:");
+//        TextField cityField= new TextField();
+//        HBox cityBox = new HBox(cityLabel, cityField);
+//        cityBox.setSpacing( 10.0d );
+//        cityBox.setAlignment(Pos.CENTER );
+//        cityBox.setPadding( new Insets(20) );
+//        regRoot.getChildren().add(cityBox);
+//        
+//        // State Label + Field
+//        Label stateLabel = new Label("State:");
+//        TextField stateField= new TextField();
+//        HBox stateBox = new HBox(stateLabel, stateField);
+//        stateBox.setSpacing( 10.0d );
+//        stateBox.setAlignment(Pos.CENTER );
+//        stateBox.setPadding( new Insets(20) );
+//        regRoot.getChildren().add(stateBox);
         
         // Create User button
         Button createUserButton = new Button("Create User and Login");
-        HBox createUserBox= new HBox(createUserButton);
+        HBox createUserBox = new HBox(createUserButton);
         createUserBox.setSpacing( 10.0d );
         createUserBox.setAlignment(Pos.CENTER );
         createUserBox.setPadding( new Insets(20) );
@@ -234,44 +245,62 @@ public class Main extends Application {
         createUserButton.setOnAction(event -> {
         	System.out.println("Reg user!");
         	
+        	// Check Zip code - If bad - show alert, else continue
+        	int inZipCode = Integer.parseInt(zipField.getText());
+        	ZipCodeModel checkZip = zipCodeDAL.getZipCode(inZipCode); 
+        	if (checkZip == null) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Invalid zip - please enter a new value");
+    			a.show();
+    			zipField.setText("");
+        		return;
+        	}
+        	
+        	
         	// Create User object
         	UserModel u = new UserModel();
         	u.setName(nameField.getText());
         	u.setEmail(emailField.getText());
         	u.setHashPassword(passwordField.getText());
+        	u.setZipCodeId(inZipCode);
 
-        	// Create ZipCode object
-        	ZipCodeModel z = new ZipCodeModel();
-        	z.setZipCode(Integer.parseInt(zipField.getText()));
-    		z.setCity(cityField.getText());
-    		z.setState(stateField.getText());
-    		u.setZipCode(z);
+//        	// Create ZipCode object
+//        	ZipCodeModel z = new ZipCodeModel();
+//        	z.setZipCode(Integer.parseInt(zipField.getText()));
+//    		z.setCity(cityField.getText());
+//    		z.setState(stateField.getText());
+//    		u.setZipCode(z);
         	
     		// Check if the User exists - if not, create
     		UserModel outUser = null;
     		UserModel existingUser = userDAL.getUserByEmail(emailField.getText());
         	if (existingUser == null) {
-    			// Create the new zip and user
-        		zipCodeDAL.createZipCode(z);
+    			// Create the new user
+//        		zipCodeDAL.createZipCode(z);
         		outUser = userDAL.createUser(u);
 
         		// Set the new user as logged in
     			loggedInUser = outUser;
     			
     			// Call other code here to update the UI to the logged in view
-    			System.out.println("- New user created and logged in: " 
-    					+ loggedInUser.getName() );
+    			System.out.println("- New user created and logged in: " + loggedInUser.getName() );
     			primaryStage.setScene(mainScene);
     		} else {
     			// Display some warning/UI element to tell the user the login failed
     			System.out.println("- Unable to login, check email/pass: " 
     					+ emailField.getText() + " / " + passwordField.getText());
+
+    			Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("A user with this email already exists, please log in");
+    			a.show();
+    			primaryStage.setScene(loginScene);
+    			
     			nameField.setText("");
     			emailField.setText("");
     			passwordField.setText("");
     			zipField.setText("");
-    			cityField.setText("");
-    			stateField.setText("");
+//    			cityField.setText("");
+//    			stateField.setText("");
     		}
         	event.consume();
         });
@@ -432,8 +461,14 @@ public class Main extends Application {
     		
     		inDates = dates;
     		
-    		endField.setValue(dates.get(dates.size()-1));
+    		if (dates == null) {
+    			endField.setValue(null);
+    			
+    		} else {
+    			endField.setValue(dates.get(dates.size()-1));    			
+    		}
     		inEndDate = endField.getValue();
+    		
     	});
     	
     	return toolBarVBoxCenter;
@@ -526,6 +561,11 @@ public class Main extends Application {
         	Label label = new Label("Date " + col);
         	table.add(label, col, 0);
         }
+    }
+    
+    private VBox createDetailPane() {
+    	VBox rightPane = new VBox();
+    	return rightPane;
     }
     
     private GridPane createExchangeRateTable() {
