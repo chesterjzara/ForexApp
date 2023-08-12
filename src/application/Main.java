@@ -20,11 +20,14 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -565,6 +568,39 @@ public class Main extends Application {
     
     private VBox createDetailPane() {
     	VBox rightPane = new VBox();
+    	
+    	// Testing binding
+//    	Label testLabel = new Label();
+//		TextField testField= new TextField();
+//	    HBox testBox = new HBox(testLabel, testField);
+//	    testLabel.textProperty().bind(testField.textProperty());
+//	    rightPane.getChildren().add(testBox);
+	    
+    	TableView<ExchangeRateRow> tblItems = new TableView<>();
+    	tblItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    	VBox.setVgrow(tblItems, Priority.ALWAYS );
+    	
+    	String[] dateStrings = new String[7];	
+    	for (int i = 0; i < 7; i++) {
+    		if (inDates == null ) {
+    			dateStrings[i] = "Date " + (1+i);
+    		} else {
+    			dateStrings[i] = inDates.get(i).toString();
+    		}
+    	}
+    	
+    	TableColumn<ExchangeRateRow, String> colExchange = new TableColumn<>("Exchange");
+        TableColumn<ExchangeRateRow, String> colDate1Val = new TableColumn<>(dateStrings[0]);
+        TableColumn<ExchangeRateRow, String> colDate2Val = new TableColumn<>(dateStrings[1]);
+        TableColumn<ExchangeRateRow, String> colDate3Val = new TableColumn<>(dateStrings[2]);
+        TableColumn<ExchangeRateRow, String> colDate4Val = new TableColumn<>(dateStrings[3]);
+        TableColumn<ExchangeRateRow, String> colDate5Val = new TableColumn<>(dateStrings[4]);
+        TableColumn<ExchangeRateRow, String> colDate6Val = new TableColumn<>(dateStrings[5]);
+        TableColumn<ExchangeRateRow, String> colDate7Val = new TableColumn<>(dateStrings[6]);
+        
+        
+	    
+    	
     	return rightPane;
     }
     
