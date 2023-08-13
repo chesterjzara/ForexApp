@@ -7,6 +7,7 @@ public class ExchangeRateModel {
 	private int exchangeId;
 	private LocalDate date;		//In Java as a LocalDate, in SQLite as text in ISO format
 	private int symbolId;
+	private CurrencyModel currency;
 	private String frequency;
 	private double open;
 	private double close;
@@ -60,6 +61,14 @@ public class ExchangeRateModel {
 
 	public void setSymbolId(int symbolId) {
 		this.symbolId = symbolId;
+	}
+
+	public CurrencyModel getCurrency() {
+		return currency;
+	}
+
+	public void setCurrency(CurrencyModel currency) {
+		this.currency = currency;
 	}
 
 	public double getOpen() {

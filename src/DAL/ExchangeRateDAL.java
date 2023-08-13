@@ -47,17 +47,23 @@ public class ExchangeRateDAL {
 	}
 	
 	public static final String exchangeRatesOverDateRange = 
-			"SELECT * FROM exchange_rate\r\n"
-			+ "WHERE date >= ? AND symbol_id = ? AND frequency = ?\r\n"
-			+ "LIMIT ?";
+			"SELECT * FROM exchange_rate"
+			+ "WHERE date >= ? AND symbol_id = ? AND frequency = ?"
+			+ "LIMIT ?;";
+	
+	public static final String exchangeRatesAndCurrencyDateRange = 
+			"SELECT e.*, c.* FROM exchange_rate e "
+			+ "JOIN currency c on e.symbol_id = c.symbol_id "
+			+ "WHERE date >= ? AND c.symbol_id = ? AND frequency = ? "
+			+ "LIMIT ?;";
 	
 	public ArrayList<ExchangeRateModel> getExchangeRatesOverDateRange(int symbolId,
 			String freq, ArrayList<LocalDate> dates) {
 		ArrayList<ExchangeRateModel> ret = new ArrayList<ExchangeRateModel>();
 		
 		try {
-			PreparedStatement p = this.connection.getConn()
-					.prepareStatement(exchangeRatesOverDateRange);
+//			PreparedStatement p = this.connection.getConn().prepareStatement(exchangeRatesOverDateRange);
+			PreparedStatement p = this.connection.getConn().prepareStatement(exchangeRatesAndCurrencyDateRange);
 			String dateStr = dates.get(0).toString();
 			p.setString(1, dateStr);
 			p.setInt(2, symbolId);
@@ -67,7 +73,10 @@ public class ExchangeRateDAL {
 			
 			while (rs.next()) {
 				ExchangeRateModel e = parseExchangeRateResult(rs);
+				CurrencyModel c = CurrencyDAL.parseCurrencyResult(rs);
+				e.setCurrency(c);
 				ret.add(e);
+				
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -107,7 +116,7 @@ public class ExchangeRateDAL {
 		return (ret>0);
 	}
 	
-	private ExchangeRateModel parseExchangeRateResult(ResultSet rs) {
+	private static ExchangeRateModel parseExchangeRateResult(ResultSet rs) {
 		ExchangeRateModel e = new ExchangeRateModel();
 		try {
 			e.setExchangeId(rs.getInt("exchange_id"));

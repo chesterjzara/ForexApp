@@ -1,6 +1,13 @@
 package application;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -10,6 +17,7 @@ import javafx.geometry.Pos;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -25,11 +33,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -64,14 +75,36 @@ public class Main extends Application {
 	public String inInterval;
 	public LocalDate inStartDate; 
 	public LocalDate inEndDate; 
-	ArrayList<LocalDate> inDates;
+	public ArrayList<LocalDate> inDates;
 	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
+	public int selectedRow;
+	
+	public DoubleProperty dOpen = new SimpleDoubleProperty(); 
+	public DoubleProperty dClose = new SimpleDoubleProperty();
+	public DoubleProperty dHigh = new SimpleDoubleProperty();
+	public DoubleProperty dLow = new SimpleDoubleProperty();
+	public DoubleProperty dVolume = new SimpleDoubleProperty();
+	public StringProperty dCountry1 = new SimpleStringProperty();
+	public StringProperty dCountry2 = new SimpleStringProperty();
+	public DoubleProperty dGdp1 = new SimpleDoubleProperty();
+	public DoubleProperty dGdp2 = new SimpleDoubleProperty();
+	public DoubleProperty dDebt1 = new SimpleDoubleProperty();
+	public DoubleProperty dDebt2 = new SimpleDoubleProperty();
+	public DoubleProperty dDensity1 = new SimpleDoubleProperty();
+	public DoubleProperty dDensity2 = new SimpleDoubleProperty();
+	public IntegerProperty dLandArea1 = new SimpleIntegerProperty();
+	public IntegerProperty dLandArea2 = new SimpleIntegerProperty();
+	
 	
 	public Scene mainScene;
 	public Scene regScene;
 	public Scene loginScene;
 	public GridPane exchangeRateTable;
+	public VBox detailPane;
 
+	// Constants
+	public final int TABLE_DELETE_COL = 8;
+	public final int TABLE_DATA_ROWS = 7;
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -99,18 +132,18 @@ public class Main extends Application {
         // Create page elements
         HBox toolBarHBox = createToolBarHBox();               
         exchangeRateTable = createExchangeRateTable();
-        VBox rightDetailPane = createDetailPane();
+        detailPane = createDetailPane();
         
         //Create exchange rate table
  
         //Set element placements in root
         root.setTop(toolBarHBox);
         root.setCenter(exchangeRateTable);
-        root.setRight(rightDetailPane);
+        root.setRight(detailPane);
        
         // Main scene display settings/staging
         Color scenePaint = new Color(.99, .234, .234, .76);
-        Scene mainScene = new Scene(root, 800, 500);
+        Scene mainScene = new Scene(root, 1000, 500);
         mainScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
         mainScene.setFill(scenePaint);
         
@@ -267,19 +300,12 @@ public class Main extends Application {
         	u.setHashPassword(passwordField.getText());
         	u.setZipCodeId(inZipCode);
 
-//        	// Create ZipCode object
-//        	ZipCodeModel z = new ZipCodeModel();
-//        	z.setZipCode(Integer.parseInt(zipField.getText()));
-//    		z.setCity(cityField.getText());
-//    		z.setState(stateField.getText());
-//    		u.setZipCode(z);
         	
     		// Check if the User exists - if not, create
     		UserModel outUser = null;
     		UserModel existingUser = userDAL.getUserByEmail(emailField.getText());
         	if (existingUser == null) {
     			// Create the new user
-//        		zipCodeDAL.createZipCode(z);
         		outUser = userDAL.createUser(u);
 
         		// Set the new user as logged in
@@ -298,12 +324,11 @@ public class Main extends Application {
     			a.show();
     			primaryStage.setScene(loginScene);
     			
+    			// Reset the input fields back to blanks if failed
     			nameField.setText("");
     			emailField.setText("");
     			passwordField.setText("");
     			zipField.setText("");
-//    			cityField.setText("");
-//    			stateField.setText("");
     		}
         	event.consume();
         });
@@ -460,7 +485,7 @@ public class Main extends Application {
     		// Get valid end date based on start date:
     		ArrayList<LocalDate> dates = exchangeRateDAL.getNextDatesForSymbolId(
     				inStartDate, bCurrency.getSymbolId(), tCurrency.getSymbolId(),
-    				inInterval, 7);
+    				inInterval, TABLE_DATA_ROWS);
     		
     		inDates = dates;
     		
@@ -478,9 +503,7 @@ public class Main extends Application {
     }
     
     private VBox createToolBarVBoxRight() {
-    	
     	VBox toolBarVBoxRight = new VBox();
-    	
     	
     	// Create button elements 
         Button favoriteButton = new Button("Favorite");
@@ -488,10 +511,11 @@ public class Main extends Application {
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
         	System.out.println("Add currency exchange!");
-//        	exchangeRateTable.getChildren().clear();
+        	// Add the exchange to the list of exchange rates
+        	addNewExchangeRateTable();
+        	// Re-generate the table to update with the new rate
         	updateExchangeRateTable(exchangeRateTable);
         });
-
 
     	//Set elements as children of VBox
     	
@@ -501,22 +525,24 @@ public class Main extends Application {
     	return toolBarVBoxRight;
     }
     
-    private void updateExchangeRateTable(GridPane table) {
+    private void addNewExchangeRateTable() {
     	// Insert new Exchange Rate
     	ArrayList<ExchangeRateModel> baseExRates = exchangeRateDAL
-    			.getExchangeRatesOverDateRange(bCurrency.getSymbolId(), 
-    					inInterval, inDates);
+    			.getExchangeRatesOverDateRange(bCurrency.getSymbolId(), inInterval, inDates);
 		System.out.println("- Found Base ExRates: " + baseExRates);
 		
 		ArrayList<ExchangeRateModel> targetExRates = exchangeRateDAL
-				.getExchangeRatesOverDateRange(tCurrency.getSymbolId(), 
-						inInterval, inDates);
+				.getExchangeRatesOverDateRange(tCurrency.getSymbolId(), inInterval, inDates);
 		System.out.println("- Found TargetExRates: " + targetExRates);
 		
 		// Save the new row to our table data
 		ExchangeRateRow newRow = new ExchangeRateRow(baseExRates, targetExRates);
 		tableRowsData.add(newRow);
-    	
+		
+		updateExchangeRateTable(exchangeRateTable);
+    }
+    
+    private void updateExchangeRateTable(GridPane table) {
     	// Clear Table
     	table.getChildren().clear();
     	// Add Header with dates
@@ -528,43 +554,109 @@ public class Main extends Application {
     		ExchangeRateRow currentRow = tableRowsData.get(i);
     		ArrayList<ExchangeRateModel> calcValues = currentRow.calcValues;
     		
-    		Label buttonLabel = new Label("Add butons here");
-    		table.add(buttonLabel, 0, row);
+    		Label buttonLabel = new Label(currentRow.exchangeRateLabel());
+    		Label favLabel = new Label("⭐");
+    		favLabel.setFont(new Font("Arial", 15));
+    		HBox hButtonBox = new HBox (favLabel, buttonLabel);
+    		VBox vButtonBox = new VBox(hButtonBox);
+    		vButtonBox.setPadding( new Insets(10) );
+    		table.add(vButtonBox, 0, row);
     		
+    		final int inRow = row;
     		int col = 1;
     		for (int j = 0; j < calcValues.size(); j++) {
-    			// Just do open for now...
+    			// Just do open price for now...
     			double open = calcValues.get(j).getOpen();
-    			Label dataLabel = new Label(Double.toString(open));
-    			table.add(dataLabel, col, row);
+    			Label dataLabel = new Label(String.format("%.2f", open));
+    			VBox cellBox = new VBox(dataLabel);
+    			cellBox.setPadding( new Insets(10) );
+    			
+    			cellBox.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+    				selectTableRow(inRow);
+    			});
+    			
+    			table.add(cellBox, col, row);
     			col++;
     		}
     		
     		// Add right side delete button
-    		Label deleteLabel = new Label("X");
-    		table.add(deleteLabel, 8, row);
+    		Label deleteLabel = new Label("❌");
+    		VBox deleteBox = new VBox(deleteLabel);
+    		deleteBox.setPadding( new Insets(10) );
+    		deleteBox.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+    			System.out.println("Delete row " + inRow);
+    			deleteTableRow(inRow - 1);
+    		});
+    		table.add(deleteBox, TABLE_DELETE_COL, row);
     		
     		row++;
         }
     }
     
+    private void deleteTableRow(int row) {
+    	// Remove the deleted row from the list of exchange rates
+    	tableRowsData.remove(row);
+    	// Re-generate the table without the removed row
+    	updateExchangeRateTable(exchangeRateTable);
+    }
+    
+    private void selectTableRow(int row) {
+    	ObservableList<Node> tableChildren = exchangeRateTable.getChildren();
+    	
+    	// Update Row highlighting
+    	for (Node node: tableChildren) {
+    		int nodeRow = GridPane.getRowIndex(node);
+    		int nodeCol = GridPane.getColumnIndex(node);
+    		if(nodeRow == row && nodeCol != TABLE_DELETE_COL) {
+    			if (nodeRow == selectedRow) {
+    				node.setStyle("-fx-background-color: null");    				
+    			} else {
+    				node.setStyle("-fx-background-color: #00FFFF");
+    			}
+    		} else {
+    			node.setStyle("-fx-background-color: null");
+    		}
+    	} 	
+    	
+    	// Handle tracking selected row
+    	if (selectedRow == row) {
+    		selectedRow = -1;
+    	} else {
+    		selectedRow = row;
+    		updateDetailPane();
+    	}
+    }
+    
     private void addTableDatesHeader(GridPane table) {
     	int dateCounter = 0;
     	ArrayList<LocalDate> dates = inDates;
-    	for (int col = 1; col < 8; col++) {
-        	Label label = new Label(dates.get(dateCounter).toString());
-        	dateCounter++;
-        	table.add(label, col, 0);
+    	for (int col = 0; col < TABLE_DATA_ROWS + 2; col++) {
+    		boolean notFirstLast = (col > 0 && col < TABLE_DELETE_COL);
+    		Label label;
+    		if (notFirstLast) {
+    			label = new Label(dates.get(dateCounter).toString());
+    			dateCounter++;
+    		} else {
+    			label = new Label("   ");
+    		}
+        	VBox dateBox = new VBox(label);
+    		dateBox.setPadding( new Insets(10) );
+        	table.add(dateBox, col, 0);
         }
     }
     
+    
     private void addTableDatesEmptyHeader(GridPane table) {
     	// Create Empty exchange rate table
-    	for (int col = 1; col < 8; col++) {
-        	Label label = new Label("Date " + col);
-        	table.add(label, col, 0);
+    	for (int col = 0; col < TABLE_DATA_ROWS + 2; col++) {
+    		boolean notFirstLast = (col > 0 && col < TABLE_DELETE_COL);
+    		Label label = new Label(notFirstLast ? "Date " + (col): "");
+    		VBox dateBox = new VBox(label);
+    		dateBox.setPadding( new Insets(10) );
+        	table.add(dateBox, col, 0);
         }
     }
+    
     
     private VBox createDetailPane() {
     	VBox rightPane = new VBox();
@@ -576,63 +668,121 @@ public class Main extends Application {
 //	    testLabel.textProperty().bind(testField.textProperty());
 //	    rightPane.getChildren().add(testBox);
 	    
-    	TableView<ExchangeRateRow> tblItems = new TableView<>();
-    	tblItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-    	VBox.setVgrow(tblItems, Priority.ALWAYS );
+    	// Exchange Rate info Section
+    	Label exRateTitle = new Label("Full Exchange Rate Info");
+    	rightPane.getChildren().add(exRateTitle);
     	
-    	String[] dateStrings = new String[7];	
-    	for (int i = 0; i < 7; i++) {
-    		if (inDates == null ) {
-    			dateStrings[i] = "Date " + (1+i);
-    		} else {
-    			dateStrings[i] = inDates.get(i).toString();
-    		}
-    	}
+    	Label openClose = new Label(" - Open/Close: ");
+	   	Label openCloseVal = new Label();
+	   	openCloseVal.textProperty().bind(Bindings.format("%.2f / %.2f", dOpen, dClose));
+	   	HBox openCloseBox = new HBox(openClose, openCloseVal);
+	   	rightPane.getChildren().add(openCloseBox);
+	   	
+	   	Label highLow = new Label(" - High/Low: ");
+	   	Label highLowVal = new Label();
+	   	highLowVal.textProperty().bind(Bindings.format("%.2f / %.2f", dHigh, dLow));
+	   	HBox highLowBox = new HBox(highLow, highLowVal);
+	   	rightPane.getChildren().add(highLowBox);
+	   	
+	   	Label volume = new Label(" - Volume: ");
+	   	Label volumeVal = new Label();
+	   	volumeVal.textProperty().bind(Bindings.format("%.2f", dVolume));
+	   	HBox volumeBox = new HBox(volume, volumeVal);
+	   	rightPane.getChildren().add(volumeBox);
+
+	   	// Demographics section
+	   	Label currDemoTitle = new Label("Currency Demographics");
+    	rightPane.getChildren().add(currDemoTitle);
     	
-    	TableColumn<ExchangeRateRow, String> colExchange = new TableColumn<>("Exchange");
-        TableColumn<ExchangeRateRow, String> colDate1Val = new TableColumn<>(dateStrings[0]);
-        TableColumn<ExchangeRateRow, String> colDate2Val = new TableColumn<>(dateStrings[1]);
-        TableColumn<ExchangeRateRow, String> colDate3Val = new TableColumn<>(dateStrings[2]);
-        TableColumn<ExchangeRateRow, String> colDate4Val = new TableColumn<>(dateStrings[3]);
-        TableColumn<ExchangeRateRow, String> colDate5Val = new TableColumn<>(dateStrings[4]);
-        TableColumn<ExchangeRateRow, String> colDate6Val = new TableColumn<>(dateStrings[5]);
-        TableColumn<ExchangeRateRow, String> colDate7Val = new TableColumn<>(dateStrings[6]);
-        
-        
-	    
-    	
+    	// Country
+    	Label countryLabel = new Label(" - Country: ");
+	   	Label country1 = new Label();
+	   	country1.textProperty().bind(dCountry1);
+	   	Label country2 = new Label();
+	   	country2.textProperty().bind(dCountry2);
+	   	HBox countryBox = new HBox(countryLabel, country1, country2);
+	   	rightPane.getChildren().add(countryBox);
+	   	
+	   	// GDP
+	   	Label gdpLabel = new Label(" - GDP: ");
+	   	Label gdp1 = new Label();
+	   	gdp1.textProperty().bind(Bindings.format("%.2f", dGdp1));
+	   	Label gdp2 = new Label();
+	   	gdp2.textProperty().bind(Bindings.format("%.2f", dGdp2));
+	   	HBox gdpBox = new HBox(gdpLabel, gdp1, gdp2);
+	   	rightPane.getChildren().add(gdpBox);
+	   	
+	   	// Debt
+	   	Label debtLabel = new Label(" - Debt: ");
+	   	Label debt1 = new Label();
+	   	debt1.textProperty().bind(Bindings.format("%.2f", dDebt1));
+	   	Label debt2 = new Label();
+	   	debt2.textProperty().bind(Bindings.format("%.2f", dDebt2));
+	   	HBox debtBox = new HBox(debtLabel, debt1, debt2);
+	   	rightPane.getChildren().add(debtBox);
+	   	
+	   	// Land Area
+	   	Label landAreaLabel = new Label(" - Land Area: ");
+	   	Label landArea1 = new Label();
+	   	landArea1.textProperty().bind(Bindings.format("%d", dLandArea1));
+	   	Label landArea2 = new Label();
+	   	landArea2.textProperty().bind(Bindings.format("%d", dLandArea2));
+	   	HBox landAreaBox = new HBox(landAreaLabel, landArea1, landArea2);
+	   	rightPane.getChildren().add(landAreaBox);
+	   	
+	   	// Population Density
+	   	Label densityLabel = new Label(" - Density: ");
+	   	Label density1 = new Label();
+	   	density1.textProperty().bind(Bindings.format("%.2f", dDensity1));
+	   	Label density2 = new Label();
+	   	density2.textProperty().bind(Bindings.format("%.2f", dDensity2));
+	   	HBox densityBox = new HBox(densityLabel, density1, density2);
+	   	rightPane.getChildren().add(densityBox);
+	   	
     	return rightPane;
     }
     
+   private void updateDetailPane() {
+	   // Get Exchange to show 
+	   ExchangeRateRow selectedExRateRow = tableRowsData.get(selectedRow - 1);
+	   ExchangeRateModel averages = selectedExRateRow.calculateAvgValues();
+   	
+	   // Get Currencies
+	   CurrencyModel baseCurrency = selectedExRateRow.getBaseCurrency();
+	   CurrencyModel tarCurrency = selectedExRateRow.getTarCurrency();
+  
+	   dOpen.set(averages.getOpen());
+	   dClose.set(averages.getClose()); 
+	   dHigh.set(averages.getHigh()); 
+	   dLow.set(averages.getLow()); 
+	   dVolume.set(averages.getVolume()); 
+	   
+	   dCountry1.set(baseCurrency.getCountry());
+	   dCountry2.set(tarCurrency.getCountry());
+	   dGdp1.set(baseCurrency.getGdp());
+	   dGdp2.set(tarCurrency.getGdp());
+	   dDebt1.set(baseCurrency.getDebt());
+	   dDebt2.set(tarCurrency.getDebt());
+	   dDensity1.set(baseCurrency.getDensity());
+	   dDensity2.set(tarCurrency.getDensity());
+	   dLandArea1.set(baseCurrency.getLandArea());
+	   dLandArea2.set(tarCurrency.getLandArea());
+	   
+   }
+    
+    
     private GridPane createExchangeRateTable() {
         GridPane gridPane = new GridPane();
+        // gridPane.setGridLinesVisible(true);   // TODO - debugging
         
         // Add Empty Date Headers
         addTableDatesEmptyHeader(gridPane);
         
         // TODO - add existing user favorites instead of blanks
-        
-//        for (int row = 1; row < 6; row++) {
-//            // 9 columns to account for button columns on left and right ends 
-//        	for (int col = 0; col < 9; col++) {
-//            	
-//            	//TODO Get data from query to display here
-//            	
-//            	//Placeholder display
-//        		String labelStr = "R" + (row + 1) + "C" + (col + 1);
-//                Label label = new Label(labelStr);
-//               
-//                gridPane.add(label, col, row);
-//            }
-//        }
-
-        // Set the vertical and horizontal gaps between cells
-        gridPane.setVgap(10);
-        gridPane.setHgap(10);
 
         return gridPane;
     }
-
+    
     //main routine
     public static void main(String[] args) {
     	// Setup DB connection

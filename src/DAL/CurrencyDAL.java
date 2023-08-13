@@ -13,7 +13,24 @@ public class CurrencyDAL {
 	
 	private DataConnection connection;
 	
-	public Dictionary<String, String> dict = new Hashtable<>();
+	public static Dictionary<String, String> dict = new Hashtable<String, String>() {{
+		put("symbolId", "symbol_id");
+		put("symbol", "symbol");
+        put("country", "country");
+        put("population", "population");
+        put("gdp", "gdp");
+        put("debt", "debt");
+        put("birthRate", "birth_rate");
+        put("averageAge", "average_age");
+        put("billionaires", "billionaires");
+        put("landArea", "land_area");
+        put("density", "density");
+        put("isLandlocked", "is_landlocked");
+        put("goldReserves", "gold_reserves");
+        put("milesHighway", "miles_highway");
+        put("maleObesity", "male_obesity");
+        put("femaleObesity", "female_obesity");
+	}};
 	
 	public static final String currencyTableDLL = 
 			"CREATE TABLE currency ("
@@ -36,22 +53,6 @@ public class CurrencyDAL {
 	
 	public CurrencyDAL(DataConnection connection) {
         this.connection = connection;
-        this.dict.put("symbolId", "symbol_id");
-        this.dict.put("symbol", "symbol");
-        this.dict.put("country", "country");
-        this.dict.put("population", "population");
-        this.dict.put("gdp", "gdp");
-        this.dict.put("debt", "debt");
-        this.dict.put("birthRate", "birth_rate");
-        this.dict.put("averageAge", "average_age");
-        this.dict.put("billionaires", "billionaires");
-        this.dict.put("landArea", "land_area");
-        this.dict.put("density", "density");
-        this.dict.put("isLandlocked", "is_landlocked");
-        this.dict.put("goldReserves", "gold_reserves");
-        this.dict.put("milesHighway", "miles_highway");
-        this.dict.put("maleObesity", "male_obesity");
-        this.dict.put("femaleObesity", "female_obesity");
     }
 	
 	public CurrencyModel getCurrency(int symbolId) {
@@ -130,19 +131,20 @@ public class CurrencyDAL {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 		return (ret>0);
 	}
 	
-	private CurrencyModel parseCurrencyResult(ResultSet rs) {
+	public static CurrencyModel parseCurrencyResult(ResultSet rs) {
 		CurrencyModel c = new CurrencyModel();
 		try {
 			c.setSymbolId(rs.getInt(dict.get("symbolId")));
 			c.setSymbol(rs.getString(dict.get("symbol")));
+			c.setCountry(rs.getString(dict.get("country")));
 			c.setPopulation(rs.getInt("population"));
 			c.setGdp(rs.getDouble("gdp"));
 			c.setDebt(rs.getDouble(dict.get("debt")));
 			c.setBirthRate(rs.getDouble(dict.get("birthRate")));
+			c.setAverageAge(rs.getDouble(dict.get("averageAge")));
 			c.setBillionaires(rs.getInt(dict.get("billionaires")));
 			c.setLandArea(rs.getInt(dict.get("landArea")));
 			c.setDensity(rs.getDouble(dict.get("density")));
