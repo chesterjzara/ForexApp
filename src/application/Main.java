@@ -129,12 +129,10 @@ public class Main extends Application {
 		//Create root holder
         BorderPane root = new BorderPane();
        
-        // Create page elements
+        // Create main scene elements - toolbar, exchange rate table, details
         HBox toolBarHBox = createToolBarHBox();               
         exchangeRateTable = createExchangeRateTable();
         detailPane = createDetailPane();
-        
-        //Create exchange rate table
  
         //Set element placements in root
         root.setTop(toolBarHBox);
@@ -177,6 +175,7 @@ public class Main extends Application {
         	String userEmail = emailField.getText();
         	String userPassword = passwordField.getText();
         	
+        	// Check if the entered user credentials can login or not
         	UserModel checkUser = userDAL.checkUserLogin(userEmail, userPassword);
         	if (checkUser != null) {
     			// Set the found user as logged in
@@ -193,12 +192,16 @@ public class Main extends Application {
     		}
         	event.consume();
         });
+        
+        // Button to change scene to registrations screen
         Button regButton = new Button("New User?");        
         regButton.setOnAction(event -> {
         	System.out.println("Register");
         	primaryStage.setScene(regScene);
         	event.consume();
         });
+        
+        // Position buttons and fields on the screen
         HBox loginButtonBox = new HBox(loginButton, regButton);
         loginButtonBox.setSpacing( 10.0d );
         loginButtonBox.setAlignment(Pos.CENTER );
@@ -207,7 +210,6 @@ public class Main extends Application {
         loginRoot.getChildren().add(emailBox);
         loginRoot.getChildren().add(passwordBox);
         loginRoot.getChildren().add(loginButtonBox);
-        
         
         return loginScene;
 	}
@@ -252,24 +254,6 @@ public class Main extends Application {
         zipBox.setPadding( new Insets(20) );
         regRoot.getChildren().add(zipBox);
         
-//        // City Label + Field
-//        Label cityLabel = new Label("City:");
-//        TextField cityField= new TextField();
-//        HBox cityBox = new HBox(cityLabel, cityField);
-//        cityBox.setSpacing( 10.0d );
-//        cityBox.setAlignment(Pos.CENTER );
-//        cityBox.setPadding( new Insets(20) );
-//        regRoot.getChildren().add(cityBox);
-//        
-//        // State Label + Field
-//        Label stateLabel = new Label("State:");
-//        TextField stateField= new TextField();
-//        HBox stateBox = new HBox(stateLabel, stateField);
-//        stateBox.setSpacing( 10.0d );
-//        stateBox.setAlignment(Pos.CENTER );
-//        stateBox.setPadding( new Insets(20) );
-//        regRoot.getChildren().add(stateBox);
-        
         // Create User button
         Button createUserButton = new Button("Create User and Login");
         HBox createUserBox = new HBox(createUserButton);
@@ -278,6 +262,7 @@ public class Main extends Application {
         createUserBox.setPadding( new Insets(20) );
         regRoot.getChildren().add(createUserBox);
         
+        // Handle button to create a new user
         createUserButton.setOnAction(event -> {
         	System.out.println("Reg user!");
         	
@@ -292,14 +277,12 @@ public class Main extends Application {
         		return;
         	}
         	
-        	
         	// Create User object
         	UserModel u = new UserModel();
         	u.setName(nameField.getText());
         	u.setEmail(emailField.getText());
         	u.setHashPassword(passwordField.getText());
         	u.setZipCodeId(inZipCode);
-
         	
     		// Check if the User exists - if not, create
     		UserModel outUser = null;
@@ -339,28 +322,24 @@ public class Main extends Application {
     private HBox createToolBarHBox() {
      
     	//Create Topbar Section Vboxes
-    	
     	VBox toolBarVBoxLeft = createToolBarVBoxLeft();
     	VBox toolBarVBoxCenter = createToolBarVBoxCenter();
     	VBox toolBarVBoxRight = createToolBarVBoxRight();
     	
     	//Create parent HBox for TopBar with VBox sections
     	HBox toolBarHBox = new HBox(toolBarVBoxLeft, toolBarVBoxCenter, toolBarVBoxRight);
-    	
 
     	// Bind the VBoxes' widths to the Toolbar width to make them proportional
     	toolBarVBoxLeft.prefWidthProperty().bind(toolBarHBox.widthProperty().divide(3));
     	toolBarVBoxCenter.prefWidthProperty().bind(toolBarHBox.widthProperty().divide(3));
     	toolBarVBoxRight.prefWidthProperty().bind(toolBarHBox.widthProperty().divide(3));
     	
-
         return toolBarHBox;
     }
     
     private VBox createToolBarVBoxLeft() {
     	
     	VBox toolBarVBoxLeft = new VBox();
-    	
     	
     	//Base Currency Selection
     	Label baseCurrencyLabel = new Label("Base Currency:");
@@ -403,7 +382,6 @@ public class Main extends Application {
     	tCurrHBox.setSpacing( 10.0d );
     	tCurrHBox.setAlignment(Pos.CENTER );
     	tCurrHBox.setPadding( new Insets(2) );
-    	
         
         //Add Left section GUI elements as Vbox children
         toolBarVBoxLeft.getChildren().add(bCurrHBox);
@@ -413,10 +391,10 @@ public class Main extends Application {
     }
     
     private VBox createToolBarVBoxCenter() {
-    	
+
     	VBox toolBarVBoxCenter = new VBox();
     	
-    	// Interval Selection 
+    	// Interval Selection field
     	Label intervalLabel = new Label("Interval:");
     	ObservableList <String> intervalOptions = 
     			FXCollections.observableArrayList("day", "week", "month");
@@ -428,7 +406,6 @@ public class Main extends Application {
     	intervalBox.setPadding( new Insets(2) );
     	toolBarVBoxCenter.getChildren().add(intervalBox);
     	
-    	
     	// End Date Selection
     	Label endLabel = new Label("End Date:");
     	DatePicker endField = new DatePicker();
@@ -437,7 +414,6 @@ public class Main extends Application {
     	endBox.setSpacing( 10.0d );
     	endBox.setAlignment(Pos.CENTER );
     	endBox.setPadding( new Insets(2) );
-    	
     	
     	// Start Date Selection
     	Label startLabel = new Label("Start Date:");
@@ -473,7 +449,9 @@ public class Main extends Application {
     		inEndDate = null;
     	});
     	
+    	// When the start date is set - find the end date based on interval
     	startField.setOnAction(e -> {
+    		// Check to make sure we have the needed inputs (currencies/interval)
     		if (bCurrency == null || tCurrency == null || inStartDate == null
     				|| inInterval.isBlank()) {
     			return;
@@ -487,6 +465,7 @@ public class Main extends Application {
     				inStartDate, bCurrency.getSymbolId(), tCurrency.getSymbolId(),
     				inInterval, TABLE_DATA_ROWS);
     		
+    		// Save dates to global state variables (if we get a "dates" result)
     		inDates = dates;
     		
     		if (dates == null) {
@@ -539,6 +518,7 @@ public class Main extends Application {
 		ExchangeRateRow newRow = new ExchangeRateRow(baseExRates, targetExRates);
 		tableRowsData.add(newRow);
 		
+		// Update the table to re-draw all rows
 		updateExchangeRateTable(exchangeRateTable);
     }
     
@@ -628,15 +608,18 @@ public class Main extends Application {
     }
     
     private void addTableDatesHeader(GridPane table) {
+    	// Add date header to the table based on the input dates    	
     	int dateCounter = 0;
     	ArrayList<LocalDate> dates = inDates;
     	for (int col = 0; col < TABLE_DATA_ROWS + 2; col++) {
     		boolean notFirstLast = (col > 0 && col < TABLE_DELETE_COL);
     		Label label;
     		if (notFirstLast) {
+    			// The 7 middle columns are dates
     			label = new Label(dates.get(dateCounter).toString());
     			dateCounter++;
     		} else {
+    			// The first and the last columns should not be dates
     			label = new Label("   ");
     		}
         	VBox dateBox = new VBox(label);
@@ -649,8 +632,9 @@ public class Main extends Application {
     private void addTableDatesEmptyHeader(GridPane table) {
     	// Create Empty exchange rate table
     	for (int col = 0; col < TABLE_DATA_ROWS + 2; col++) {
+    		// Add placeholder values for the 7 middle columns in the table
     		boolean notFirstLast = (col > 0 && col < TABLE_DELETE_COL);
-    		Label label = new Label(notFirstLast ? "Date " + (col): "");
+    		Label label = new Label(notFirstLast ? "Date " + (col): "  ");
     		VBox dateBox = new VBox(label);
     		dateBox.setPadding( new Insets(10) );
         	table.add(dateBox, col, 0);
@@ -743,7 +727,7 @@ public class Main extends Application {
     }
     
    private void updateDetailPane() {
-	   // Get Exchange to show 
+	   // Get Exchange Rates to display for a given row
 	   ExchangeRateRow selectedExRateRow = tableRowsData.get(selectedRow - 1);
 	   ExchangeRateModel averages = selectedExRateRow.calculateAvgValues();
    	
@@ -751,12 +735,14 @@ public class Main extends Application {
 	   CurrencyModel baseCurrency = selectedExRateRow.getBaseCurrency();
 	   CurrencyModel tarCurrency = selectedExRateRow.getTarCurrency();
   
+	   // Update the combined Exchange Rate info
 	   dOpen.set(averages.getOpen());
 	   dClose.set(averages.getClose()); 
 	   dHigh.set(averages.getHigh()); 
 	   dLow.set(averages.getLow()); 
 	   dVolume.set(averages.getVolume()); 
 	   
+	   // Update the currency demo info for each 
 	   dCountry1.set(baseCurrency.getCountry());
 	   dCountry2.set(tarCurrency.getCountry());
 	   dGdp1.set(baseCurrency.getGdp());
@@ -767,7 +753,6 @@ public class Main extends Application {
 	   dDensity2.set(tarCurrency.getDensity());
 	   dLandArea1.set(baseCurrency.getLandArea());
 	   dLandArea2.set(tarCurrency.getLandArea());
-	   
    }
     
     
