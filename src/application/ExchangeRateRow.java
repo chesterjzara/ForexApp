@@ -12,6 +12,7 @@ public class ExchangeRateRow {
 	public ArrayList<ExchangeRateModel> target;
 //	public CurrencyModel targetCurrency;
 	public boolean isFavorite;
+	public int userFavoriteId;
 	public ArrayList<ExchangeRateModel> calcValues;
 	
 	public static int idCount = 0;
@@ -110,12 +111,28 @@ public class ExchangeRateRow {
 		return avgCalc;
 	}
 	
+	public int getBaseExRateId() {
+		return this.base.get(0).getExchangeId();
+	}
+	
+	public int getTargetExRateId() {
+		return this.target.get(0).getExchangeId();
+	}
+	
 	public CurrencyModel getBaseCurrency() {
 		return this.base.get(0).getCurrency();
+	}
+	
+	public int getBaseCurrencyId() {
+		return this.base.get(0).getSymbolId();
 	}
 
 	public CurrencyModel getTarCurrency() {
 		return this.target.get(0).getCurrency();
+	}
+	
+	public int getTarCurrencyId() {
+		return this.target.get(0).getSymbolId();
 	}
 	
 	public String exchangeRateLabel() {

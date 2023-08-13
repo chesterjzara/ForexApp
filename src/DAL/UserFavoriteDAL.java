@@ -24,18 +24,44 @@ public class UserFavoriteDAL {
         this.connection = connection;
     }
 	
+	public static final String userFavAndCurrencyInfo = 
+			"SELECT uf.*, cb.symbol 'base_symbol', ct.symbol 'tar_symbol', eb.date 'start_date'\r\n"
+			+ "FROM user_favorites uf\r\n"
+			+ "JOIN exchange_rate eb on uf.base_exchange_id = eb.exchange_id\r\n"
+			+ "JOIN currency cb on eb.symbol_id = cb.symbol_id\r\n"
+			+ "JOIN exchange_rate et on uf.target_exchange_id = et.exchange_id\r\n"
+			+ "JOIN currency ct on et.symbol_id = ct.symbol_id\r\n"
+			+ "WHERE user_id = ?;";
+	
 	public ArrayList<UserFavoriteModel> getUserFavoritesByUserId(int userId) {
-		String sql = "SELECT * FROM user_favorites uf WHERE uf.user_id=" + userId;
 		ArrayList<UserFavoriteModel> userFavoriteList = new ArrayList<UserFavoriteModel>();
 		try {
-			ResultSet rs = connection.getConn().createStatement()
-					.executeQuery(sql);
-			
-			//rs.next();
+			PreparedStatement p = this.connection.getConn().prepareStatement(userFavAndCurrencyInfo);
+			p.setInt(1, userId);
+			ResultSet rs = p.executeQuery();
 			
 			while(rs.next()) {
 				if (rs.getInt("user_favorite_id") > 0) {
 					UserFavoriteModel uf = parseUserFavoriteResult(rs);
+
+					CurrencyModel bc = new CurrencyModel();
+					bc.setSymbol(rs.getString("base_symbol"));
+					ExchangeRateModel be = new ExchangeRateModel();
+					be.setCurrency(bc);
+					
+					String dateString = rs.getString("start_date");
+					DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					LocalDate date = LocalDate.parse(dateString, inputFormatter);
+					be.setDate(date);
+					
+					uf.setBaseExchangeRate(be);
+					
+					CurrencyModel tc = new CurrencyModel();
+					tc.setSymbol(rs.getString("tar_symbol"));
+					ExchangeRateModel te = new ExchangeRateModel();
+					te.setCurrency(tc);
+					uf.setTargetExchangeRate(te);
+					
 					userFavoriteList.add(uf);
 				}
 			}
@@ -76,6 +102,24 @@ public class UserFavoriteDAL {
 		try {
 			PreparedStatement ps = this.connection.getConn().prepareStatement(deleteSql);
 			ps.setInt(1, userFavoriteId);
+			
+			ret = ps.executeUpdate();	
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return (ret > 0);
+	}
+	
+	public boolean deleteUserFavoriteSearch (int userId, int baseId, int tarId) {
+		String deleteSql = "DELETE FROM user_favorites WHERE user_id= ? AND base_exchange_id = ? AND target_exchange_id = ?";
+		int ret = 0;
+		
+		try {
+			PreparedStatement ps = this.connection.getConn().prepareStatement(deleteSql);
+			ps.setInt(1, userId);
+			ps.setInt(2, baseId);
+			ps.setInt(3, tarId);
 			
 			ret = ps.executeUpdate();	
 		} catch (Exception ex) {
