@@ -349,19 +349,19 @@ public class Main extends Application {
     	List<CurrencyModel> currencyChoices = currencyDAL.getCurrencyList();
     	
     	// Override the base Currency String Methods - to control text in dropdown
-    	baseCurrChoice.setConverter(new StringConverter<CurrencyModel>() {
-    		@Override
-    		public String toString(CurrencyModel c) {
-    			if (c == null) {
-    				return "";
-    			}
-    			return c.getSymbol();
-    		}
-    		@Override
-            public CurrencyModel fromString(String string) {
-                return null;
-            }
-    	});
+//    	baseCurrChoice.setConverter(new StringConverter<CurrencyModel>() {
+//    		@Override
+//    		public String toString(CurrencyModel c) {
+//    			if (c == null) {
+//    				return "";
+//    			}
+//    			return c.getSymbol();
+//    		}
+//    		@Override
+//            public CurrencyModel fromString(String string) {
+//                return null;
+//            }
+//    	});
     	
     	// Put base currency and label in an HBox to line up
     	baseCurrChoice.getItems().addAll(currencyChoices);
@@ -409,6 +409,8 @@ public class Main extends Application {
     	// End Date Selection
     	Label endLabel = new Label("End Date:");
     	DatePicker endField = new DatePicker();
+    	LocalDate lastDate = LocalDate.of(2023, 7, 6);
+    	endField.setValue(lastDate);
     	endField.setDisable(true);
     	HBox endBox = new HBox(endLabel, endField);
     	endBox.setSpacing( 10.0d );
@@ -445,8 +447,20 @@ public class Main extends Application {
     		inInterval = intervalChoice.getValue();
     		startField.setValue(initialDate);
     		inStartDate = initialDate;
-    		endField.setValue(null);
-    		inEndDate = null;
+    		endField.setValue(lastDate);
+    		inEndDate = lastDate;
+    		
+    		// Reset the Exchange Rate Table
+    		clearAllTableRowData();
+    		resetExchangeRateTable(exchangeRateTable);
+    		
+    		// Get valid end date based on start date:
+    		ArrayList<LocalDate> dates = exchangeRateDAL.getNextDatesForSymbolId(
+    				inStartDate, bCurrency.getSymbolId(), tCurrency.getSymbolId(),
+    				inInterval, TABLE_DATA_ROWS);
+    		
+    		// Save dates to global state variables (if we get a "dates" result)
+    		inDates = dates;
     	});
     	
     	// When the start date is set - find the end date based on interval
@@ -456,6 +470,16 @@ public class Main extends Application {
     				|| inInterval.isBlank()) {
     			return;
     		}
+    		
+    		// If the start date is blanked out - do nothing 
+    		if (startField.getValue() == null) {
+    			inStartDate = null;
+    			return;
+    		}
+    		
+    		// Reset the Exchange Rate Table
+    		clearAllTableRowData();
+    		resetExchangeRateTable(exchangeRateTable);
     		
     		System.out.println(startField.getValue());
     		inStartDate = startField.getValue();
@@ -490,6 +514,15 @@ public class Main extends Application {
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
         	System.out.println("Add currency exchange!");
+
+        	// Check for all required fields
+        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Missing input values - please enter first");
+    			a.show();
+        		return;
+        	}
+        	
         	// Add the exchange to the list of exchange rates
         	addNewExchangeRateTable();
         	// Re-generate the table to update with the new rate
@@ -522,11 +555,19 @@ public class Main extends Application {
 		updateExchangeRateTable(exchangeRateTable);
     }
     
-    private void updateExchangeRateTable(GridPane table) {
+    private void resetExchangeRateTable(GridPane table) {
     	// Clear Table
     	table.getChildren().clear();
     	// Add Header with dates
     	addTableDatesHeader(table);
+    }
+    
+    private void updateExchangeRateTable(GridPane table) {
+//    	// Clear Table
+//    	table.getChildren().clear();
+//    	// Add Header with dates
+//    	addTableDatesHeader(table);
+    	resetExchangeRateTable(table);
     	
     	// Loop through the table data and add a row to the grid for each
     	int row = 1;
@@ -573,6 +614,10 @@ public class Main extends Application {
         }
     }
     
+    private void clearAllTableRowData() {
+    	tableRowsData.removeAll(tableRowsData);
+    }
+    
     private void deleteTableRow(int row) {
     	// Remove the deleted row from the list of exchange rates
     	tableRowsData.remove(row);
@@ -601,6 +646,7 @@ public class Main extends Application {
     	// Handle tracking selected row
     	if (selectedRow == row) {
     		selectedRow = -1;
+    		clearDetailData();
     	} else {
     		selectedRow = row;
     		updateDetailPane();
@@ -608,6 +654,11 @@ public class Main extends Application {
     }
     
     private void addTableDatesHeader(GridPane table) {
+    	if (inDates == null || inDates.size()< TABLE_DATA_ROWS) {
+    		addTableDatesEmptyHeader(table);
+    		return;
+    	}
+    	
     	// Add date header to the table based on the input dates    	
     	int dateCounter = 0;
     	ArrayList<LocalDate> dates = inDates;
@@ -755,6 +806,24 @@ public class Main extends Application {
 	   dLandArea2.set(tarCurrency.getLandArea());
    }
     
+    private void clearDetailData() {
+    	dOpen.set(0);
+ 	   	dClose.set(0); 
+ 	   	dHigh.set(0);
+ 	   	dLow.set(0); 
+ 	   	dVolume.set(0); 
+    	
+    	dCountry1.set("");
+ 	   	dCountry2.set("");
+ 	   	dGdp1.set(0);
+ 	   	dGdp2.set(0);
+ 	   	dDebt1.set(0);
+ 	   	dDebt2.set(0);
+ 	   	dDensity1.set(0);
+ 	   	dDensity2.set(0);
+ 	   	dLandArea1.set(0);
+ 	   	dLandArea2.set(0);
+    }
     
     private GridPane createExchangeRateTable() {
         GridPane gridPane = new GridPane();
