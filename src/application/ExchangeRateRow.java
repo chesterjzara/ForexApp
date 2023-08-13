@@ -8,7 +8,9 @@ import Models.*;
 public class ExchangeRateRow {
 	public int id;
 	public ArrayList<ExchangeRateModel> base;
+//	public CurrencyModel baseCurrency;
 	public ArrayList<ExchangeRateModel> target;
+//	public CurrencyModel targetCurrency;
 	public boolean isFavorite;
 	public ArrayList<ExchangeRateModel> calcValues;
 	
@@ -23,6 +25,17 @@ public class ExchangeRateRow {
 		
 		this.calcValues = calculateValues(base, target);
 	}
+	
+//	public ExchangeRateRow(ArrayList<ExchangeRateModel> base, CurrencyModel baseCurrency, 
+//			ArrayList<ExchangeRateModel> target, CurrencyModel targetCurrency, boolean isFavorite) {
+//		this.base = base;
+//		this.baseCurrency = baseCurrency;
+//		this.target = target;
+//		this.targetCurrency = targetCurrency;
+//		this.isFavorite = isFavorite;
+//		
+//		this.calcValues = calculateValues(base, target);
+//	}
 	
 	public ExchangeRateRow(ArrayList<ExchangeRateModel> base, ArrayList<ExchangeRateModel> target) {
 		this(base, target, false);
@@ -68,5 +81,46 @@ public class ExchangeRateRow {
 		}
 
 		return calc;
+	}
+	
+	public ExchangeRateModel calculateAvgValues() {
+		ArrayList<ExchangeRateModel> values = calculateValues(base, target);
+		ExchangeRateModel avgCalc = new ExchangeRateModel();
+		
+		double totalOpen = 0;
+		double totalClose = 0;
+		double totalHigh = 0;
+		double totalLow = 0;
+		double totalVolume = 0;
+		
+		for (int i = 0; i < values.size(); i++) {
+			totalOpen += values.get(i).getOpen();
+			totalClose += values.get(i).getClose();
+			totalHigh += values.get(i).getHigh();
+			totalLow += values.get(i).getLow();
+			totalVolume += values.get(i).getVolume();
+		}
+		
+		avgCalc.setOpen(totalOpen/values.size());
+		avgCalc.setClose(totalClose/values.size());
+		avgCalc.setHigh(totalHigh/values.size());
+		avgCalc.setLow(totalLow/values.size());
+		avgCalc.setVolume(totalVolume/values.size());
+		
+		return avgCalc;
+	}
+	
+	public CurrencyModel getBaseCurrency() {
+		return this.base.get(0).getCurrency();
+	}
+
+	public CurrencyModel getTarCurrency() {
+		return this.target.get(0).getCurrency();
+	}
+	
+	public String exchangeRateLabel() {
+		String baseName = this.base.get(0).getCurrency().getSymbol();
+		String targetName = this.target.get(0).getCurrency().getSymbol();
+		return baseName + " / " + targetName;
 	}
 }
