@@ -349,19 +349,19 @@ public class Main extends Application {
     	List<CurrencyModel> currencyChoices = currencyDAL.getCurrencyList();
     	
     	// Override the base Currency String Methods - to control text in dropdown
-    	baseCurrChoice.setConverter(new StringConverter<CurrencyModel>() {
-    		@Override
-    		public String toString(CurrencyModel c) {
-    			if (c == null) {
-    				return "";
-    			}
-    			return c.getSymbol();
-    		}
-    		@Override
-            public CurrencyModel fromString(String string) {
-                return null;
-            }
-    	});
+//    	baseCurrChoice.setConverter(new StringConverter<CurrencyModel>() {
+//    		@Override
+//    		public String toString(CurrencyModel c) {
+//    			if (c == null) {
+//    				return "";
+//    			}
+//    			return c.getSymbol();
+//    		}
+//    		@Override
+//            public CurrencyModel fromString(String string) {
+//                return null;
+//            }
+//    	});
     	
     	// Put base currency and label in an HBox to line up
     	baseCurrChoice.getItems().addAll(currencyChoices);
@@ -471,6 +471,12 @@ public class Main extends Application {
     			return;
     		}
     		
+    		// If the start date is blanked out - do nothing 
+    		if (startField.getValue() == null) {
+    			inStartDate = null;
+    			return;
+    		}
+    		
     		// Reset the Exchange Rate Table
     		clearAllTableRowData();
     		resetExchangeRateTable(exchangeRateTable);
@@ -508,6 +514,15 @@ public class Main extends Application {
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
         	System.out.println("Add currency exchange!");
+
+        	// Check for all required fields
+        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Missing input values - please enter first");
+    			a.show();
+        		return;
+        	}
+        	
         	// Add the exchange to the list of exchange rates
         	addNewExchangeRateTable();
         	// Re-generate the table to update with the new rate
