@@ -103,6 +103,7 @@ public class Main extends Application {
 	public Scene regScene;
 	public Scene loginScene;
 	public Scene favoritesScene;
+	public Scene friendsScene;
 	
 	public GridPane exchangeRateTable;
 	public VBox detailPane;
@@ -120,7 +121,8 @@ public class Main extends Application {
             loginScene = createLoginScene(primaryStage);
             regScene = createRegisterScene(primaryStage);
             mainScene = createMainScene(primaryStage);
-            favoritesScene = createFavoritesScenes(primaryStage);
+            favoritesScene = createFavoritesScene(primaryStage);
+            friendsScene = createFriendsScene(primaryStage);
 
             // Set initial login Scene onto Stage
             primaryStage.setScene(loginScene);
@@ -326,7 +328,7 @@ public class Main extends Application {
         return regScene;
 	}
 	
-	private Scene createFavoritesScenes(Stage primaryStage) {
+	private Scene createFavoritesScene(Stage primaryStage) {
 		//Create root holder
         BorderPane root = new BorderPane();
        
@@ -347,11 +349,28 @@ public class Main extends Application {
         return favScene;
 	}
 	
-//	private HBox createFavToolbar() {
-//		HBox favToolbar = new HBox();
-//		
-//		return favToolbar;
-//	}
+	private Scene createFriendsScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        // Create main scene elements - toolbar, exchange rate table, details
+        HBox friendToolbar = new HBox();               
+        VBox friendList = new VBox();
+        VBox friendFavorites = new VBox();
+ 
+        //Set element placements in root
+        root.setTop(friendToolbar);
+        root.setLeft(friendList);
+        root.setCenter(friendFavorites);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene friendScene = new Scene(root, 1000, 500);
+        friendScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        friendScene.setFill(scenePaint);
+        
+        return friendScene;
+	}
 	
 	private VBox createFavTable(Stage primaryStage) {
 		
@@ -394,6 +413,10 @@ public class Main extends Application {
 		btnDelete.setOnAction(event -> {
 			UserFavoriteModel delete = favTable.getSelectionModel().getSelectedItem();
 			
+			if (delete == null) {
+				return;
+			}
+			
 			userFavoriteDAL.deleteUserFavorite(delete.getUserFavoriteId());
 			favTable.getItems().removeIf(fav -> {
 				return fav.getUserFavoriteId() == delete.getUserFavoriteId();
@@ -417,7 +440,9 @@ public class Main extends Application {
 		});
 		
         Button btnAdd = new Button("Add to Table");
+        btnAdd.setDisable(true);
         Button btnAddDate = new Button("Add with Date");
+        btnAddDate.setDisable(true);
         
         Button btnBack= new Button("Back");
         btnBack.setOnAction(event -> {
