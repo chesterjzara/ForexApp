@@ -76,7 +76,6 @@ public class ExchangeRateDAL {
 				CurrencyModel c = CurrencyDAL.parseCurrencyResult(rs);
 				e.setCurrency(c);
 				ret.add(e);
-				
 			}
 		} catch (Exception e) {
 			// TODO: handle exception

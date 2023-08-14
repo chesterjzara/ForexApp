@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -33,6 +34,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -67,6 +69,8 @@ public class Main extends Application {
 	public static UserFavoriteDAL userFavoriteDAL;
 	public static UserDAL userDAL;
 	public static ZipCodeDAL zipCodeDAL;
+	public static FriendDAL friendDAL;
+	
 	
 	// Application State Variables
 	public UserModel loggedInUser;
@@ -78,6 +82,8 @@ public class Main extends Application {
 	public ArrayList<LocalDate> inDates;
 	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
 	public int selectedRow;
+	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
+	public ArrayList<FriendTableRow> friendList = new ArrayList<FriendTableRow>();
 	
 	public DoubleProperty dOpen = new SimpleDoubleProperty(); 
 	public DoubleProperty dClose = new SimpleDoubleProperty();
@@ -99,8 +105,13 @@ public class Main extends Application {
 	public Scene mainScene;
 	public Scene regScene;
 	public Scene loginScene;
+	public Scene favoritesScene;
+	public Scene friendsScene;
+	
 	public GridPane exchangeRateTable;
 	public VBox detailPane;
+	public TableView<UserFavoriteModel> favTable;
+	public TableView<FriendTableRow> friendTable;
 
 	// Constants
 	public final int TABLE_DELETE_COL = 8;
@@ -114,6 +125,8 @@ public class Main extends Application {
             loginScene = createLoginScene(primaryStage);
             regScene = createRegisterScene(primaryStage);
             mainScene = createMainScene(primaryStage);
+            favoritesScene = createFavoritesScene(primaryStage);
+            friendsScene = createFriendsScene(primaryStage);
 
             // Set initial login Scene onto Stage
             primaryStage.setScene(loginScene);
@@ -130,7 +143,7 @@ public class Main extends Application {
         BorderPane root = new BorderPane();
        
         // Create main scene elements - toolbar, exchange rate table, details
-        HBox toolBarHBox = createToolBarHBox();               
+        HBox toolBarHBox = createToolBarHBox(primaryStage);               
         exchangeRateTable = createExchangeRateTable();
         detailPane = createDetailPane();
  
@@ -319,12 +332,216 @@ public class Main extends Application {
         return regScene;
 	}
 	
-    private HBox createToolBarHBox() {
+	private Scene createFavoritesScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        // Create main scene elements - toolbar, exchange rate table, details               
+        VBox favTableSection = createFavTable(primaryStage);
+ 
+        //Set element placements in root
+        root.setCenter(favTableSection);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene favScene = new Scene(root, 1000, 500);
+        favScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        favScene.setFill(scenePaint);
+        
+        return favScene;
+	}
+	
+	private Scene createFriendsScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(event -> {
+        	primaryStage.setScene(mainScene);
+        });
+        VBox leftToolbar = new VBox(backBtn);
+        
+        Label searchLabel = new Label("Search Friends: ");
+        TextField searchField = new TextField();
+        Button searchBtn = new Button("Add Friend");
+        HBox searchBox = new HBox(searchLabel, searchField, searchBtn);
+        
+        StringProperty searchText = new SimpleStringProperty();
+        searchText.bind(searchField.textProperty());
+        searchBtn.setOnAction(e -> {
+        	String searchInput = searchText.get();
+        	System.out.println(searchInput);
+        	
+        	// Check if name entered matches someone
+        	UserModel searchUser = userDAL.getUserByEmail(searchInput);
+        	if (searchUser == null) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("User not found - try another email");
+    			a.show();
+    			searchField.setText("");
+        		return;
+        	} else {
+        		// Save new friend to DB
+        		FriendModel newFriend = new FriendModel(loggedInUser.getId(), searchUser.getId());
+        		newFriend = friendDAL.createFriend(newFriend);
+        		
+        		// Save new friend to global list and table
+        		FriendTableRow newRow = friendDAL.getFriendRow(loggedInUser.getId(), newFriend.getFriendId());
+        		friendList.add(newRow);
+        		friendTable.refresh();
+        		friendTable.getItems().removeAll(friendTable.getItems());
+        		friendTable.getItems().addAll(friendList);
+        	}
+        	
+        });
+        VBox centerToolbar = new VBox(searchBox);
+        		
+        // Make table for friends
+        friendTable = new TableView<>();
+        friendTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		VBox.setVgrow(friendTable, Priority.ALWAYS );
+		
+		TableColumn<FriendTableRow, String> colFriendId = new TableColumn<>("Friend ID");
+		TableColumn<FriendTableRow, String> colFriendName = new TableColumn<>("Friend Name");
+		TableColumn<FriendTableRow, String> colFriendFavNum = new TableColumn<>("# Favorites");
+        
+		colFriendId.setCellValueFactory( new PropertyValueFactory<>("friendId"));
+		colFriendName.setCellValueFactory( new PropertyValueFactory<>("friendName"));
+		colFriendFavNum.setCellValueFactory( new PropertyValueFactory<>("numFavs"));
+				
+		friendTable.getColumns().addAll(colFriendId, colFriendName, colFriendFavNum);
+		
+		Label favoriteListHeader = new Label("Friend Favorite List: ");
+		VBox favoriteVBox = new VBox();
+		
+		friendTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelect, newSelection) -> {
+			favoriteVBox.getChildren().clear();
+			if (newSelection!= null) {
+				int friendId = newSelection.getFriendId();
+				ArrayList<UserFavoriteModel> friendFavorites = userFavoriteDAL.getUserFavoritesByUserId(friendId);
+				
+				for (int i = 0; i < friendFavorites.size(); i++) {
+					Label favString = new Label(friendFavorites.get(i).toString());
+					favoriteVBox.getChildren().add(new HBox(favString));
+				}
+			}
+		});
+		
+        
+        // Create main scene elements
+        HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
+        VBox friendList = new VBox(friendTable);
+        VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
+ 
+        //Set element placements in root
+        root.setTop(friendToolbar);
+        root.setLeft(friendList);
+        root.setCenter(friendFavorites);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene friendScene = new Scene(root, 1000, 500);
+        friendScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        friendScene.setFill(scenePaint);
+        
+        return friendScene;
+	}
+	
+	private VBox createFavTable(Stage primaryStage) {
+		
+		favTable = new TableView<>();
+		favTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		VBox.setVgrow(favTable, Priority.ALWAYS );
+		
+		TableColumn<UserFavoriteModel, String> colFavId = new TableColumn<>("Favorite ID");
+		TableColumn<UserFavoriteModel, String> colBase = new TableColumn<>("Base Exchange Rate");
+		TableColumn<UserFavoriteModel, String> colTarget = new TableColumn<>("Target Exchange Rate");
+		TableColumn<UserFavoriteModel, String> colStartDate = new TableColumn<>("Orig Start Date");
+		TableColumn<UserFavoriteModel, String> colAddDate = new TableColumn<>("Added Date");
+		
+		colFavId.setCellValueFactory( new PropertyValueFactory<>("userFavoriteId"));
+		colBase.setCellValueFactory( cellData -> {
+			UserFavoriteModel uf = cellData.getValue();
+			String symbol = uf.getBaseExchangeRate().getCurrency().getSymbol();
+			return new SimpleStringProperty(symbol);
+		});
+		colTarget.setCellValueFactory( cellData -> {
+			UserFavoriteModel uf = cellData.getValue();
+			String symbol = uf.getTargetExchangeRate().getCurrency().getSymbol();
+			return new SimpleStringProperty(symbol);
+		});
+		colStartDate.setCellValueFactory( cellData -> {
+			UserFavoriteModel uf = cellData.getValue();
+			String date = uf.getBaseExchangeRate().getDate().toString();
+			return new SimpleStringProperty(date);
+		});
+		colAddDate.setCellValueFactory( new PropertyValueFactory<>("dateAdded"));
+		
+		favTable.getColumns().addAll(colFavId, colBase, colTarget, colStartDate, colAddDate);
+		
+		if (loggedInUser != null) {
+			favoriteList = userFavoriteDAL.getUserFavoritesByUserId(loggedInUser.getId());			
+		}
+		favTable.getItems().addAll(favoriteList);
+		
+		Button btnDelete = new Button("Delete");
+		btnDelete.setOnAction(event -> {
+			UserFavoriteModel delete = favTable.getSelectionModel().getSelectedItem();
+			
+			if (delete == null) {
+				return;
+			}
+			
+			userFavoriteDAL.deleteUserFavorite(delete.getUserFavoriteId());
+			favTable.getItems().removeIf(fav -> {
+				return fav.getUserFavoriteId() == delete.getUserFavoriteId();
+			});
+			
+			for (ExchangeRateRow rowData: tableRowsData) {
+				int rowBase = rowData.getBaseExRateId();
+				int rowTar = rowData.getTargetExRateId();
+				int delBase = delete.getBaseExchangeRateId();
+				int delTar = delete.getTargetExchangeRateId();
+				
+				if (rowBase != delBase) {
+					continue;
+				}
+				if (rowTar != delTar) {
+					continue;
+				}
+				rowData.isFavorite = false;
+			}
+			
+		});
+		
+        Button btnAdd = new Button("Add to Table");
+        btnAdd.setDisable(true);
+        Button btnAddDate = new Button("Add with Date");
+        btnAddDate.setDisable(true);
+        
+        Button btnBack= new Button("Back");
+        btnBack.setOnAction(event -> {
+        	updateExchangeRateTable(exchangeRateTable);
+        	primaryStage.setScene(mainScene);
+        });
+		
+		HBox buttonHBox = new HBox(btnDelete, btnAdd, btnAddDate, btnBack);
+		buttonHBox.setSpacing(8);
+		
+		
+		VBox tableBox = new VBox(favTable, buttonHBox);
+		tableBox.setPadding( new Insets(10) );
+		tableBox.setSpacing( 10 );
+        
+		return tableBox;
+	}
+	
+    private HBox createToolBarHBox(Stage primaryStage) {
      
     	//Create Topbar Section Vboxes
     	VBox toolBarVBoxLeft = createToolBarVBoxLeft();
     	VBox toolBarVBoxCenter = createToolBarVBoxCenter();
-    	VBox toolBarVBoxRight = createToolBarVBoxRight();
+    	VBox toolBarVBoxRight = createToolBarVBoxRight(primaryStage);
     	
     	//Create parent HBox for TopBar with VBox sections
     	HBox toolBarHBox = new HBox(toolBarVBoxLeft, toolBarVBoxCenter, toolBarVBoxRight);
@@ -505,11 +722,18 @@ public class Main extends Application {
     	return toolBarVBoxCenter;
     }
     
-    private VBox createToolBarVBoxRight() {
+    private VBox createToolBarVBoxRight(Stage primaryStage) {
     	VBox toolBarVBoxRight = new VBox();
     	
     	// Create button elements 
-        Button favoriteButton = new Button("Favorite");
+        Button favoriteButton = new Button("View Favorites");
+        favoriteButton.setOnAction(event -> {
+        	favoriteList = userFavoriteDAL.getUserFavoritesByUserId(loggedInUser.getId());
+        	favTable.refresh();
+        	favTable.getItems().removeAll(favTable.getItems());
+        	favTable.getItems().addAll(favoriteList);
+        	primaryStage.setScene(favoritesScene);
+        });
         
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
@@ -528,11 +752,22 @@ public class Main extends Application {
         	// Re-generate the table to update with the new rate
         	updateExchangeRateTable(exchangeRateTable);
         });
+        
+        Button friendButton = new Button("Friends");
+        friendButton.setOnAction(event -> {
+        	// Get list of friends, save to global
+        	friendList = friendDAL.getFriendList(loggedInUser.getId()); 
+        	friendTable.getItems().removeAll(friendTable.getItems());
+        	friendTable.getItems().addAll(friendList);
+        	// Update the friend list based on logged in user
+        	primaryStage.setScene(friendsScene);
+        });
 
     	//Set elements as children of VBox
     	
         toolBarVBoxRight.getChildren().add(favoriteButton);
         toolBarVBoxRight.getChildren().add(addButton);
+        toolBarVBoxRight.getChildren().add(friendButton);
 
     	return toolBarVBoxRight;
     }
@@ -574,16 +809,20 @@ public class Main extends Application {
     	for (int i = 0; i < tableRowsData.size(); i++) {
     		ExchangeRateRow currentRow = tableRowsData.get(i);
     		ArrayList<ExchangeRateModel> calcValues = currentRow.calcValues;
+    		boolean isFav = currentRow.isFavorite;
     		
     		Label buttonLabel = new Label(currentRow.exchangeRateLabel());
-    		Label favLabel = new Label("⭐");
-    		favLabel.setFont(new Font("Arial", 15));
-    		HBox hButtonBox = new HBox (favLabel, buttonLabel);
+    		Button favButton = new Button(isFav ? "Unfav": "Fav");
+    		HBox hButtonBox = new HBox (favButton, buttonLabel);
     		VBox vButtonBox = new VBox(hButtonBox);
     		vButtonBox.setPadding( new Insets(10) );
     		table.add(vButtonBox, 0, row);
     		
     		final int inRow = row;
+    		favButton.setOnAction(event -> {
+    			toggleTableFavorite(inRow - 1);
+    		});
+    		
     		int col = 1;
     		for (int j = 0; j < calcValues.size(); j++) {
     			// Just do open price for now...
@@ -653,6 +892,38 @@ public class Main extends Application {
     	}
     }
     
+    private void toggleTableFavorite(int row) {
+    	// Identify the row and get the base/exchange info
+    	ExchangeRateRow eRow = tableRowsData.get(row);
+
+    	int favUserId = loggedInUser.getId();
+    	int favBaseRate = eRow.getBaseExRateId();
+    	int favTarRate = eRow.getTargetExRateId();
+    	LocalDate favDate = LocalDate.now();
+    	
+    	if (eRow.isFavorite) {
+//    		boolean delCheck = userFavoriteDAL.deleteUserFavoriteSearch(favUserId, favBaseRate, favTarRate);
+    		boolean delCheck = userFavoriteDAL.deleteUserFavorite(eRow.userFavoriteId);
+    		eRow.isFavorite = false;
+    		
+    	} else {
+    		// Save to the favorite DB
+    		UserFavoriteModel uf = new UserFavoriteModel();
+        	uf.setUserId(favUserId);
+        	uf.setBaseExchangeRateId(favBaseRate);
+        	uf.setTargetExchangeRateId(favTarRate);
+        	uf.setDateAdded(favDate);
+        	UserFavoriteModel newUf = userFavoriteDAL.createUserFavorite(uf);
+        	eRow.userFavoriteId = newUf.getUserFavoriteId();
+        	
+        	eRow.isFavorite = true;
+    	}
+    	
+    	// Reload the table?
+    	updateExchangeRateTable(exchangeRateTable);
+    	
+    }
+    
     private void addTableDatesHeader(GridPane table) {
     	if (inDates == null || inDates.size()< TABLE_DATA_ROWS) {
     		addTableDatesEmptyHeader(table);
@@ -678,8 +949,7 @@ public class Main extends Application {
         	table.add(dateBox, col, 0);
         }
     }
-    
-    
+
     private void addTableDatesEmptyHeader(GridPane table) {
     	// Create Empty exchange rate table
     	for (int col = 0; col < TABLE_DATA_ROWS + 2; col++) {
@@ -691,8 +961,7 @@ public class Main extends Application {
         	table.add(dateBox, col, 0);
         }
     }
-    
-    
+      
     private VBox createDetailPane() {
     	VBox rightPane = new VBox();
     	
@@ -849,7 +1118,7 @@ public class Main extends Application {
 		userFavoriteDAL = new UserFavoriteDAL(dc);
 		userDAL = new UserDAL(dc);
 		zipCodeDAL = new ZipCodeDAL(dc);
-    	
+    	friendDAL = new FriendDAL(dc);
     	
     	launch(args);
     }	    
