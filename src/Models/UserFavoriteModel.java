@@ -87,6 +87,9 @@ public class UserFavoriteModel {
 		this.dateAdded = dateAdded;
 	}
 
-	
+	public String toString() {
+		return "["+userFavoriteId+"] From " + baseExchangeRate.getCurrency().getSymbol() + " to " + targetExchangeRate.getCurrency().getSymbol() 
+				+ " on " + dateAdded.toString();
+	}
 	
 }

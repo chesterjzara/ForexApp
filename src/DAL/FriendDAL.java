@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import Models.*;
+import application.FriendTableRow;
 
 public class FriendDAL {
 	private DataConnection connection;
@@ -45,6 +46,76 @@ public class FriendDAL {
 			e.printStackTrace();
 		}
 		return friendUsers;
+	}
+	
+	public static final String getFriendList = 
+			"SELECT f.user_id, f.friend_id, u.name, u.email, z.city, count(uf.user_favorite_id) 'fav_count'\n"
+			+ "FROM friend_bridge f\n"
+			+ "JOIN users u on f.friend_id = u.user_id\n"
+			+ "JOIN user_favorites uf on uf.user_id = f.friend_id\n"
+			+ "JOIN zip_code z on u.zip_code = z.zip_code\n"
+			+ "WHERE f.user_id = ?\n"
+			+ "GROUP BY friend_id, u.name, u.email;";
+	
+	public ArrayList<FriendTableRow> getFriendList(int userId) {
+		ArrayList<FriendTableRow> friendList = new ArrayList<FriendTableRow>();
+		
+		try {
+			PreparedStatement ps = this.connection.getConn().prepareStatement(getFriendList);
+			ps.setInt(1, userId);
+			
+			// Might not be able to do prepared statement here?
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next()) {
+				if (rs.getInt("friend_id") > 0) {
+					FriendTableRow newRow = new FriendTableRow();
+					newRow.friendId = rs.getInt("friend_id");
+					newRow.friendName = rs.getString("name");
+					newRow.friendEmail = rs.getString("email");
+					newRow.friendCity = rs.getString("city");
+					newRow.numFavs = rs.getInt("fav_count");
+					
+					friendList.add(newRow);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return friendList;
+	}
+	
+	public static final String getFriendRow = 
+			"SELECT f.user_id, f.friend_id, u.name, u.email, z.city, count(uf.user_favorite_id) 'fav_count'\n"
+			+ "FROM friend_bridge f\n"
+			+ "JOIN users u on f.friend_id = u.user_id\n"
+			+ "JOIN user_favorites uf on uf.user_id = f.friend_id\n"
+			+ "JOIN zip_code z on u.zip_code = z.zip_code\n"
+			+ "WHERE f.user_id = ?  AND f.friend_id = ?\n"
+			+ "GROUP BY friend_id, u.name, u.email;";
+	
+	public FriendTableRow getFriendRow(int userId, int friendId) {
+		FriendTableRow friendRow = new FriendTableRow();
+		
+		try {
+			PreparedStatement ps = this.connection.getConn().prepareStatement(getFriendRow);
+			ps.setInt(1, userId);
+			ps.setInt(2, friendId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.getInt("friend_id") > 0) {
+				friendRow.friendId = rs.getInt("friend_id");
+				friendRow.friendName = rs.getString("name");
+				friendRow.friendEmail = rs.getString("email");
+				friendRow.friendCity = rs.getString("city");
+				friendRow.numFavs = rs.getInt("fav_count");
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return friendRow;
 	}
 	
 	public FriendModel createFriend(FriendModel f) {

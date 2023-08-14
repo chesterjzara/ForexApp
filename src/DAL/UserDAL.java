@@ -3,6 +3,7 @@ package DAL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import Models.*;
 
@@ -81,6 +82,47 @@ public class UserDAL {
 			}
 		}
 		return null;
+	}
+	
+	public static final String findUsersInSameCounty = 
+			"SELECT *\r\n"
+			+ "FROM users u\r\n"
+			+ "JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "WHERE u.user_id <> ? \r\n"
+			+ "    AND z.country =\r\n"
+			+ "        (SELECT z.country FROM users u\r\n"
+			+ "        JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "        WHERE u.user_id = ?);";
+	
+	public ArrayList<UserModel> findUsersInCounty(int userId) {
+		ArrayList<UserModel> foundUsers = new ArrayList<UserModel>();
+		
+		try {
+			PreparedStatement p = this.connection.getConn().prepareStatement(findUsersInSameCounty);
+			p.setInt(1, userId);
+			p.setInt(1, userId);
+			ResultSet rs = p.executeQuery();
+			
+			while(rs.next()) {
+				if (rs.getInt("user_id") > 0) {
+					UserModel u = new UserModel();
+					u.setId(rs.getInt("user_id"));
+					u.setName(rs.getString("name"));
+					u.setEmail(rs.getString("email"));
+					
+					ZipCodeModel z = new ZipCodeModel();
+					z.setZipCode(rs.getInt("zip_code"));
+					z.setStateAbbr(rs.getString("state_abbr"));
+					z.setCountry(rs.getString("country"));
+					u.setZipCode(z);
+					
+					foundUsers.add(u);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return foundUsers;
 	}
 	
 	public UserModel createUser(UserModel userInput) {

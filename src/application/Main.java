@@ -69,6 +69,8 @@ public class Main extends Application {
 	public static UserFavoriteDAL userFavoriteDAL;
 	public static UserDAL userDAL;
 	public static ZipCodeDAL zipCodeDAL;
+	public static FriendDAL friendDAL;
+	
 	
 	// Application State Variables
 	public UserModel loggedInUser;
@@ -81,6 +83,7 @@ public class Main extends Application {
 	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
 	public int selectedRow;
 	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
+	public ArrayList<FriendTableRow> friendList = new ArrayList<FriendTableRow>();
 	
 	public DoubleProperty dOpen = new SimpleDoubleProperty(); 
 	public DoubleProperty dClose = new SimpleDoubleProperty();
@@ -108,6 +111,7 @@ public class Main extends Application {
 	public GridPane exchangeRateTable;
 	public VBox detailPane;
 	public TableView<UserFavoriteModel> favTable;
+	public TableView<FriendTableRow> friendTable;
 
 	// Constants
 	public final int TABLE_DELETE_COL = 8;
@@ -332,12 +336,10 @@ public class Main extends Application {
 		//Create root holder
         BorderPane root = new BorderPane();
        
-        // Create main scene elements - toolbar, exchange rate table, details
-//        HBox favToolbar = createFavToolbar();               
+        // Create main scene elements - toolbar, exchange rate table, details               
         VBox favTableSection = createFavTable(primaryStage);
  
         //Set element placements in root
-//        root.setTop(favToolbar);
         root.setCenter(favTableSection);
        
         // Main scene display settings/staging
@@ -353,10 +355,83 @@ public class Main extends Application {
 		//Create root holder
         BorderPane root = new BorderPane();
        
-        // Create main scene elements - toolbar, exchange rate table, details
-        HBox friendToolbar = new HBox();               
-        VBox friendList = new VBox();
-        VBox friendFavorites = new VBox();
+        Button backBtn = new Button("Back");
+        backBtn.setOnAction(event -> {
+        	primaryStage.setScene(mainScene);
+        });
+        VBox leftToolbar = new VBox(backBtn);
+        
+        Label searchLabel = new Label("Search Friends: ");
+        TextField searchField = new TextField();
+        Button searchBtn = new Button("Add Friend");
+        HBox searchBox = new HBox(searchLabel, searchField, searchBtn);
+        
+        StringProperty searchText = new SimpleStringProperty();
+        searchText.bind(searchField.textProperty());
+        searchBtn.setOnAction(e -> {
+        	String searchInput = searchText.get();
+        	System.out.println(searchInput);
+        	
+        	// Check if name entered matches someone
+        	UserModel searchUser = userDAL.getUserByEmail(searchInput);
+        	if (searchUser == null) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("User not found - try another email");
+    			a.show();
+    			searchField.setText("");
+        		return;
+        	} else {
+        		// Save new friend to DB
+        		FriendModel newFriend = new FriendModel(loggedInUser.getId(), searchUser.getId());
+        		newFriend = friendDAL.createFriend(newFriend);
+        		
+        		// Save new friend to global list and table
+        		FriendTableRow newRow = friendDAL.getFriendRow(loggedInUser.getId(), newFriend.getFriendId());
+        		friendList.add(newRow);
+        		friendTable.refresh();
+        		friendTable.getItems().removeAll(friendTable.getItems());
+        		friendTable.getItems().addAll(friendList);
+        	}
+        	
+        });
+        VBox centerToolbar = new VBox(searchBox);
+        		
+        // Make table for friends
+        friendTable = new TableView<>();
+        friendTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		VBox.setVgrow(friendTable, Priority.ALWAYS );
+		
+		TableColumn<FriendTableRow, String> colFriendId = new TableColumn<>("Friend ID");
+		TableColumn<FriendTableRow, String> colFriendName = new TableColumn<>("Friend Name");
+		TableColumn<FriendTableRow, String> colFriendFavNum = new TableColumn<>("# Favorites");
+        
+		colFriendId.setCellValueFactory( new PropertyValueFactory<>("friendId"));
+		colFriendName.setCellValueFactory( new PropertyValueFactory<>("friendName"));
+		colFriendFavNum.setCellValueFactory( new PropertyValueFactory<>("numFavs"));
+				
+		friendTable.getColumns().addAll(colFriendId, colFriendName, colFriendFavNum);
+		
+		Label favoriteListHeader = new Label("Friend Favorite List: ");
+		VBox favoriteVBox = new VBox();
+		
+		friendTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelect, newSelection) -> {
+			favoriteVBox.getChildren().clear();
+			if (newSelection!= null) {
+				int friendId = newSelection.getFriendId();
+				ArrayList<UserFavoriteModel> friendFavorites = userFavoriteDAL.getUserFavoritesByUserId(friendId);
+				
+				for (int i = 0; i < friendFavorites.size(); i++) {
+					Label favString = new Label(friendFavorites.get(i).toString());
+					favoriteVBox.getChildren().add(new HBox(favString));
+				}
+			}
+		});
+		
+        
+        // Create main scene elements
+        HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
+        VBox friendList = new VBox(friendTable);
+        VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
  
         //Set element placements in root
         root.setTop(friendToolbar);
@@ -677,11 +752,22 @@ public class Main extends Application {
         	// Re-generate the table to update with the new rate
         	updateExchangeRateTable(exchangeRateTable);
         });
+        
+        Button friendButton = new Button("Friends");
+        friendButton.setOnAction(event -> {
+        	// Get list of friends, save to global
+        	friendList = friendDAL.getFriendList(loggedInUser.getId()); 
+        	friendTable.getItems().removeAll(friendTable.getItems());
+        	friendTable.getItems().addAll(friendList);
+        	// Update the friend list based on logged in user
+        	primaryStage.setScene(friendsScene);
+        });
 
     	//Set elements as children of VBox
     	
         toolBarVBoxRight.getChildren().add(favoriteButton);
         toolBarVBoxRight.getChildren().add(addButton);
+        toolBarVBoxRight.getChildren().add(friendButton);
 
     	return toolBarVBoxRight;
     }
@@ -1032,7 +1118,7 @@ public class Main extends Application {
 		userFavoriteDAL = new UserFavoriteDAL(dc);
 		userDAL = new UserDAL(dc);
 		zipCodeDAL = new ZipCodeDAL(dc);
-    	
+    	friendDAL = new FriendDAL(dc);
     	
     	launch(args);
     }	    
