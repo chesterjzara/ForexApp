@@ -940,7 +940,7 @@ public class Main extends Application {
     		
     		Label buttonLabel = new Label(currentRow.exchangeRateLabel());
     		Button favButton = new Button(isFav ? "Unfav": "Fav");
-    		HBox hButtonBox = new HBox (favButton, buttonLabel);
+    		HBox hButtonBox = new HBox (5, favButton, buttonLabel);
     		VBox vButtonBox = new VBox(hButtonBox);
     		vButtonBox.setPadding( new Insets(10) );
     		table.add(vButtonBox, 0, row);
@@ -1046,9 +1046,8 @@ public class Main extends Application {
         	eRow.isFavorite = true;
     	}
     	
-    	// Reload the table?
+    	// Reload the table
     	updateExchangeRateTable(exchangeRateTable);
-    	
     }
     
     private void addTableDatesHeader(GridPane table) {
@@ -1131,44 +1130,46 @@ public class Main extends Application {
 	   	country1.textProperty().bind(dCountry1);
 	   	Label country2 = new Label();
 	   	country2.textProperty().bind(dCountry2);
-	   	HBox countryBox = new HBox(countryLabel, country1, country2);
+	   	HBox countryBox = new HBox(10, countryLabel, country1, country2);
 	   	rightPane.getChildren().add(countryBox);
 	   	
 	   	// GDP
 	   	Label gdpLabel = new Label(" - GDP: ");
 	   	Label gdp1 = new Label();
-	   	gdp1.textProperty().bind(Bindings.format("%.2f", dGdp1));
+	   	gdp1.textProperty().bind(Bindings.format("%,.2f", dGdp1));
 	   	Label gdp2 = new Label();
-	   	gdp2.textProperty().bind(Bindings.format("%.2f", dGdp2));
-	   	HBox gdpBox = new HBox(gdpLabel, gdp1, gdp2);
+	   	gdp2.textProperty().bind(Bindings.format("%,.2f", dGdp2));
+	   	HBox gdpBox = new HBox(10, gdpLabel, gdp1, gdp2);
 	   	rightPane.getChildren().add(gdpBox);
 	   	
 	   	// Debt
 	   	Label debtLabel = new Label(" - Debt: ");
 	   	Label debt1 = new Label();
-	   	debt1.textProperty().bind(Bindings.format("%.2f", dDebt1));
+	   	debt1.textProperty().bind(Bindings.format("%,.2f", dDebt1));
 	   	Label debt2 = new Label();
-	   	debt2.textProperty().bind(Bindings.format("%.2f", dDebt2));
-	   	HBox debtBox = new HBox(debtLabel, debt1, debt2);
+	   	debt2.textProperty().bind(Bindings.format("%,.2f", dDebt2));
+	   	HBox debtBox = new HBox(10, debtLabel, debt1, debt2);
 	   	rightPane.getChildren().add(debtBox);
 	   	
 	   	// Land Area
 	   	Label landAreaLabel = new Label(" - Land Area: ");
 	   	Label landArea1 = new Label();
-	   	landArea1.textProperty().bind(Bindings.format("%d", dLandArea1));
+	   	landArea1.textProperty().bind(Bindings.format("%,d", dLandArea1));
 	   	Label landArea2 = new Label();
-	   	landArea2.textProperty().bind(Bindings.format("%d", dLandArea2));
-	   	HBox landAreaBox = new HBox(landAreaLabel, landArea1, landArea2);
+	   	landArea2.textProperty().bind(Bindings.format("%,d", dLandArea2));
+	   	HBox landAreaBox = new HBox(10, landAreaLabel, landArea1, landArea2);
 	   	rightPane.getChildren().add(landAreaBox);
 	   	
 	   	// Population Density
 	   	Label densityLabel = new Label(" - Density: ");
 	   	Label density1 = new Label();
-	   	density1.textProperty().bind(Bindings.format("%.2f", dDensity1));
+	   	density1.textProperty().bind(Bindings.format("%,.2f", dDensity1));
 	   	Label density2 = new Label();
-	   	density2.textProperty().bind(Bindings.format("%.2f", dDensity2));
-	   	HBox densityBox = new HBox(densityLabel, density1, density2);
+	   	density2.textProperty().bind(Bindings.format("%,.2f", dDensity2));
+	   	HBox densityBox = new HBox(10, densityLabel, density1, density2);
 	   	rightPane.getChildren().add(densityBox);
+	   	
+	   	rightPane.setPadding( new Insets(10) );
 	   	
     	return rightPane;
     }
