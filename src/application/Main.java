@@ -610,13 +610,16 @@ public class Main extends Application {
 		});
 		
         Button btnAdd = new Button("Add to Table");
+        btnAdd.setDisable(true);
         btnAdd.setOnAction(e -> {
         	UserFavoriteModel addFavorite = favTable.getSelectionModel().getSelectedItem();
         	if (addFavorite == null) {
 				return;
 			}
         	
-        	parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+        	// If we are going to load in the favorite - clear input fields/values 
+        	//clearExchangeInputs();
+        	//parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
         	
         });
         
@@ -626,7 +629,6 @@ public class Main extends Application {
         Button btnBack= new Button("Back");
         btnBack.setOnAction(event -> {
         	updateExchangeRateTable(exchangeRateTable);
-        	clearExchangeInputs();
         	primaryStage.setScene(mainScene);
         });
 		
@@ -666,7 +668,8 @@ public class Main extends Application {
     	//Base Currency Selection
     	Label baseCurrencyLabel = new Label("Base Currency:");
     	ChoiceBox<CurrencyModel> baseCurrChoice = new ChoiceBox<>();
-
+    	fBCurrency = baseCurrChoice;
+    	
     	// Get list of base currencies
     	List<CurrencyModel> currencyChoices = currencyDAL.getCurrencyList();
     	
@@ -696,6 +699,7 @@ public class Main extends Application {
     	// Target Currency Selection
     	Label targetCurrencyLabel = new Label("Target Currency:");
     	ChoiceBox<CurrencyModel> targetCurrChoice = new ChoiceBox<>();
+    	fTCurrency = targetCurrChoice;
     	targetCurrChoice.getItems().addAll(currencyChoices);
     	targetCurrChoice.setOnAction(event -> tCurrency = targetCurrChoice.getValue());
     	
@@ -721,6 +725,7 @@ public class Main extends Application {
     	ObservableList <String> intervalOptions = 
     			FXCollections.observableArrayList("day", "week", "month");
     	ChoiceBox<String> intervalChoice = new ChoiceBox<String>(intervalOptions);
+    	fInterval = intervalChoice;
     	
     	HBox intervalBox = new HBox(intervalLabel, intervalChoice);
     	intervalBox.setSpacing( 10.0d );
@@ -731,6 +736,7 @@ public class Main extends Application {
     	// End Date Selection
     	Label endLabel = new Label("End Date:");
     	DatePicker endField = new DatePicker();
+    	fEndDate = endField;
     	LocalDate lastDate = LocalDate.of(2023, 7, 6);
     	endField.setValue(lastDate);
     	endField.setDisable(true);
@@ -742,6 +748,7 @@ public class Main extends Application {
     	// Start Date Selection
     	Label startLabel = new Label("Start Date:");
     	DatePicker startField = new DatePicker();
+    	fStartDate = startField;
     	LocalDate initialDate = LocalDate.of(2019, 6, 30);
     	startField.setValue(initialDate);
     	startField.setDayCellFactory(field -> new DateCell() {
@@ -925,8 +932,11 @@ public class Main extends Application {
     	inEndDate = null;
     	inDates = null;
     	
-    	
-    	
+    	fBCurrency.setValue(null);
+    	fTCurrency.setValue(null);
+    	fInterval.setValue(null);
+    	fStartDate.setValue(null);
+    	fEndDate.setValue(null);
     }
     
     private void addNewExchangeRateTable(CurrencyModel bCurrency, CurrencyModel tCurrency, 
