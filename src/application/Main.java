@@ -359,12 +359,13 @@ public class Main extends Application {
         backBtn.setOnAction(event -> {
         	primaryStage.setScene(mainScene);
         });
-        VBox leftToolbar = new VBox(backBtn);
         
         Label searchLabel = new Label("Search Friends: ");
         TextField searchField = new TextField();
         Button searchBtn = new Button("Add Friend");
         HBox searchBox = new HBox(searchLabel, searchField, searchBtn);
+        searchBox.setSpacing( 10.0d );
+        searchBox.setPadding( new Insets(2) );
         
         StringProperty searchText = new SimpleStringProperty();
         searchText.bind(searchField.textProperty());
@@ -503,9 +504,14 @@ public class Main extends Application {
 			}	
 		});
         
+		HBox leftToolbar = new HBox(backBtn, deleteFriendBtn);
+		leftToolbar.setSpacing( 10.0d );
+		leftToolbar.setAlignment(Pos.CENTER_LEFT );
+		leftToolbar.setPadding( new Insets(2) );
+		
         // Create main scene elements
-        HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
-        VBox friendList = new VBox(friendTable,deleteFriendBtn);
+        HBox friendToolbar = new HBox(centerToolbar);               
+        VBox friendList = new VBox(friendTable, leftToolbar);
         VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
         VBox friendSuggest = new VBox(suggestLabel, suggestBtnBox, suggestionVBox);
  
@@ -667,7 +673,7 @@ public class Main extends Application {
     	baseCurrChoice.getItems().addAll(currencyChoices);
     	HBox bCurrHBox = new HBox(baseCurrencyLabel, baseCurrChoice);
     	bCurrHBox.setSpacing( 10.0d );
-    	bCurrHBox.setAlignment(Pos.CENTER );
+    	bCurrHBox.setAlignment(Pos.CENTER_LEFT );
     	bCurrHBox.setPadding( new Insets(2) );
     	baseCurrChoice.setOnAction(event -> bCurrency = baseCurrChoice.getValue());
     	
@@ -680,7 +686,7 @@ public class Main extends Application {
     	// Put target currency and label in an HBox to line up
     	HBox tCurrHBox = new HBox(targetCurrencyLabel, targetCurrChoice);
     	tCurrHBox.setSpacing( 10.0d );
-    	tCurrHBox.setAlignment(Pos.CENTER );
+    	tCurrHBox.setAlignment(Pos.CENTER_LEFT );
     	tCurrHBox.setPadding( new Insets(2) );
         
         //Add Left section GUI elements as Vbox children
@@ -702,7 +708,7 @@ public class Main extends Application {
     	
     	HBox intervalBox = new HBox(intervalLabel, intervalChoice);
     	intervalBox.setSpacing( 10.0d );
-    	intervalBox.setAlignment(Pos.CENTER );
+    	intervalBox.setAlignment(Pos.CENTER_LEFT );
     	intervalBox.setPadding( new Insets(2) );
     	toolBarVBoxCenter.getChildren().add(intervalBox);
     	
@@ -714,7 +720,7 @@ public class Main extends Application {
     	endField.setDisable(true);
     	HBox endBox = new HBox(endLabel, endField);
     	endBox.setSpacing( 10.0d );
-    	endBox.setAlignment(Pos.CENTER );
+    	endBox.setAlignment(Pos.CENTER_LEFT );
     	endBox.setPadding( new Insets(2) );
     	
     	// Start Date Selection
@@ -735,7 +741,7 @@ public class Main extends Application {
     	});
     	HBox startBox = new HBox(startLabel, startField);
     	startBox.setSpacing( 10.0d );
-    	startBox.setAlignment(Pos.CENTER );
+    	startBox.setAlignment(Pos.CENTER_LEFT );
     	startBox.setPadding( new Insets(2) );
     	
     	toolBarVBoxCenter.getChildren().add(startBox);
@@ -830,6 +836,14 @@ public class Main extends Application {
         		return;
         	}
         	
+        	// Check if we have too many values in the table
+        	if (tableRowsData.size() >= 8) {
+        		Alert a = new Alert(AlertType.WARNING);
+    			a.setContentText("Too many values in table - please remove one to add another.");
+    			a.show();
+        		return;
+        	}
+        	
         	// Add the exchange to the list of exchange rates
         	addNewExchangeRateTable();
         	// Re-generate the table to update with the new rate
@@ -852,6 +866,10 @@ public class Main extends Application {
         toolBarVBoxRight.getChildren().add(addButton);
         toolBarVBoxRight.getChildren().add(friendButton);
 
+        toolBarVBoxRight.setSpacing( 2.0d );
+        toolBarVBoxRight.setAlignment(Pos.CENTER_LEFT );
+        toolBarVBoxRight.setPadding( new Insets(2) );
+        
     	return toolBarVBoxRight;
     }
     
