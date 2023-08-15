@@ -93,7 +93,7 @@ public class UserDAL {
 			+ "        (SELECT z.country FROM users u\r\n"
 			+ "        JOIN zip_code z on u.zip_code = z.zip_code\r\n"
 			+ "        WHERE u.user_id = ?);";
-	
+
 	public static final String findUsersInSameState = 
 			"SELECT *\r\n"
 			+ "FROM users u\r\n"

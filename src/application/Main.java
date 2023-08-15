@@ -84,7 +84,6 @@ public class Main extends Application {
 	public int selectedRow;
 	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
 	public ArrayList<FriendTableRow> friendList = new ArrayList<FriendTableRow>();
-//	public int selectedFriend; 
 	
 	public DoubleProperty dOpen = new SimpleDoubleProperty(); 
 	public DoubleProperty dClose = new SimpleDoubleProperty();
@@ -520,6 +519,7 @@ public class Main extends Application {
         root.setLeft(friendList);
         root.setCenter(friendFavorites);
         root.setRight(friendSuggest);
+
        
         // Main scene display settings/staging
         Color scenePaint = new Color(.99, .234, .234, .76);
