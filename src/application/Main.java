@@ -385,6 +385,13 @@ public class Main extends Application {
         		FriendModel newFriend = new FriendModel(loggedInUser.getId(), searchUser.getId());
         		newFriend = friendDAL.createFriend(newFriend);
         		
+        		if (newFriend == null) {
+        			Alert a = new Alert(AlertType.ERROR);
+        			a.setContentText("Unable to add friend");
+        			a.show();
+            		return;
+        		}
+        		
         		// Save new friend to global list and table
         		FriendTableRow newRow = friendDAL.getFriendRow(loggedInUser.getId(), newFriend.getFriendId());
         		friendList.add(newRow);
@@ -427,16 +434,92 @@ public class Main extends Application {
 			}
 		});
 		
+		Button deleteFriendBtn = new Button("Delete Friend");
+		deleteFriendBtn.setOnAction(e -> {
+			// Find the selected row in the Friend table
+			FriendTableRow selectedRow = friendTable.getSelectionModel().getSelectedItem();
+			if (selectedRow == null) {
+				return;
+			}
+			// Delete that friend from the DB
+			boolean check = friendDAL.deleteFriend(loggedInUser.getId(), selectedRow.friendId);
+			if (!check) {
+				Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Unable to delete friend");
+    			a.show();
+        		return;
+			}
+			// Update the display elements to remove the friend
+			friendList.remove(selectedRow);
+    		friendTable.refresh();
+    		friendTable.getItems().removeAll(friendTable.getItems());
+    		friendTable.getItems().addAll(friendList);
+		});
+		
+		VBox suggestionVBox = new VBox();
+		
+		Label suggestLabel = new Label("Find friends in...");
+		Button suggestCountyBtn = new Button("County");
+		Button suggestStateBtn = new Button("State");
+		Button suggestCityBtn = new Button("City");
+		HBox suggestBtnBox = new HBox(suggestStateBtn, suggestCountyBtn, suggestCityBtn);
+		suggestCountyBtn.setOnAction(e -> {
+			// Clear any previous info
+			suggestionVBox.getChildren().clear();
+			
+			// Check DB for similar friends
+			ArrayList<UserModel> friendSuggestions = userDAL.findUsersInX(loggedInUser.getId(), 1);
+			
+			// Print all friends + info to the suggestion display element
+			for (int i = 0; i < friendSuggestions.size(); i++) {
+				Label suggestString = new Label(friendSuggestions.get(i).fullInfo());
+				suggestionVBox.getChildren().add(new HBox(suggestString));
+			}	
+		});
+		suggestStateBtn.setOnAction(e -> {
+			// Clear any previous info
+			suggestionVBox.getChildren().clear();
+			
+			// Check DB for similar friends
+			ArrayList<UserModel> friendSuggestions = userDAL.findUsersInX(loggedInUser.getId(), 2);
+			
+			// Print all friends + info to the suggestion display element
+			for (int i = 0; i < friendSuggestions.size(); i++) {
+				Label suggestString = new Label(friendSuggestions.get(i).fullInfo());
+				suggestionVBox.getChildren().add(new HBox(suggestString));
+			}	
+		});
+		suggestCityBtn.setOnAction(e -> {
+			// Clear any previous info
+			suggestionVBox.getChildren().clear();
+			
+			// Check DB for similar friends
+			ArrayList<UserModel> friendSuggestions = userDAL.findUsersInX(loggedInUser.getId(), 3);
+			
+			// Print all friends + info to the suggestion display element
+			for (int i = 0; i < friendSuggestions.size(); i++) {
+				Label suggestString = new Label(friendSuggestions.get(i).fullInfo());
+				suggestionVBox.getChildren().add(new HBox(suggestString));
+			}	
+		});
         
         // Create main scene elements
         HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
-        VBox friendList = new VBox(friendTable);
+        VBox friendList = new VBox(friendTable,deleteFriendBtn);
         VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
+        VBox friendSuggest = new VBox(suggestLabel, suggestBtnBox, suggestionVBox);
  
+        // Bind the VBoxes' widths to the Toolbar width to make them proportional
+        friendList.prefWidthProperty().bind(friendToolbar.widthProperty().divide(4));
+        friendFavorites.prefWidthProperty().bind(friendToolbar.widthProperty().divide(4));
+        friendSuggest.prefWidthProperty().bind(friendToolbar.widthProperty().divide(2));
+        
         //Set element placements in root
         root.setTop(friendToolbar);
         root.setLeft(friendList);
         root.setCenter(friendFavorites);
+        root.setRight(friendSuggest);
+
        
         // Main scene display settings/staging
         Color scenePaint = new Color(.99, .234, .234, .76);

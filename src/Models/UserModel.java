@@ -79,4 +79,10 @@ public class UserModel {
 	public String toString() {
 		return " " + name + " [" + id + "] - " + email; 
 	}
+	
+	public String fullInfo() {
+		ZipCodeModel z = this.getZipCode();
+		return String.format("%s (%s) in %s, %s - %s County, %d [%d]", name, email, 
+				z.getCity(), z.getStateAbbr(), z.getCountry(), z.getZipCode(), id);
+	}
 }
