@@ -94,13 +94,41 @@ public class UserDAL {
 			+ "        JOIN zip_code z on u.zip_code = z.zip_code\r\n"
 			+ "        WHERE u.user_id = ?);";
 	
-	public ArrayList<UserModel> findUsersInCounty(int userId) {
+	public static final String findUsersInSameState = 
+			"SELECT *\r\n"
+			+ "FROM users u\r\n"
+			+ "JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "WHERE u.user_id <> ? \r\n"
+			+ "    AND z.state =\r\n"
+			+ "        (SELECT z.state FROM users u\r\n"
+			+ "        JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "        WHERE u.user_id = ?);";
+	
+	public static final String findUsersInSameCity = 
+			"SELECT *\r\n"
+			+ "FROM users u\r\n"
+			+ "JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "WHERE u.user_id <> ? \r\n"
+			+ "    AND z.city =\r\n"
+			+ "        (SELECT z.city FROM users u\r\n"
+			+ "        JOIN zip_code z on u.zip_code = z.zip_code\r\n"
+			+ "        WHERE u.user_id = ?);";
+	
+	public ArrayList<UserModel> findUsersInX(int userId, int option) {
 		ArrayList<UserModel> foundUsers = new ArrayList<UserModel>();
+		String sql;
+		if (option == 1) {
+			sql = findUsersInSameCounty;
+		} else if (option == 2) {
+			sql = findUsersInSameState;
+		} else {	//option 3
+			sql = findUsersInSameCity;
+		}
 		
 		try {
-			PreparedStatement p = this.connection.getConn().prepareStatement(findUsersInSameCounty);
+			PreparedStatement p = this.connection.getConn().prepareStatement(sql);
 			p.setInt(1, userId);
-			p.setInt(1, userId);
+			p.setInt(2, userId);
 			ResultSet rs = p.executeQuery();
 			
 			while(rs.next()) {
@@ -114,6 +142,7 @@ public class UserDAL {
 					z.setZipCode(rs.getInt("zip_code"));
 					z.setStateAbbr(rs.getString("state_abbr"));
 					z.setCountry(rs.getString("country"));
+					z.setCity(rs.getString("city"));
 					u.setZipCode(z);
 					
 					foundUsers.add(u);
