@@ -826,28 +826,30 @@ public class Main extends Application {
         
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
-        	System.out.println("Add currency exchange!");
-
-        	// Check for all required fields
-        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
-        		Alert a = new Alert(AlertType.ERROR);
-    			a.setContentText("Missing input values - please enter first");
-    			a.show();
-        		return;
-        	}
-        	
-        	// Check if we have too many values in the table
-        	if (tableRowsData.size() >= 8) {
-        		Alert a = new Alert(AlertType.WARNING);
-    			a.setContentText("Too many values in table - please remove one to add another.");
-    			a.show();
-        		return;
-        	}
-        	
-        	// Add the exchange to the list of exchange rates
-        	addNewExchangeRateTable();
-        	// Re-generate the table to update with the new rate
-        	updateExchangeRateTable(exchangeRateTable);
+        	// Requires: bCurrency, tCurrency, inInterval, inStartDate, inEndDate
+        	parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+//        	System.out.println("Add currency exchange!");
+//
+//        	// Check for all required fields
+//        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+//        		Alert a = new Alert(AlertType.ERROR);
+//    			a.setContentText("Missing input values - please enter first");
+//    			a.show();
+//        		return;
+//        	}
+//        	
+//        	// Check if we have too many values in the table
+//        	if (tableRowsData.size() >= 8) {
+//        		Alert a = new Alert(AlertType.WARNING);
+//    			a.setContentText("Too many values in table - please remove one to add another.");
+//    			a.show();
+//        		return;
+//        	}
+//        	
+//        	// Add the exchange to the list of exchange rates
+//        	addNewExchangeRateTable();
+//        	// Re-generate the table to update with the new rate
+//        	updateExchangeRateTable(exchangeRateTable);
         });
         
         Button friendButton = new Button("Friends");
@@ -873,7 +875,34 @@ public class Main extends Application {
     	return toolBarVBoxRight;
     }
     
-    private void addNewExchangeRateTable() {
+    private void parentAddExchangeRate(CurrencyModel bCurrency, CurrencyModel tCurrency, 
+    		String inInterval, LocalDate inStartDate, LocalDate inEndDate) {
+    	System.out.println("Add currency exchange!");
+
+    	// Check for all required fields
+    	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+    		Alert a = new Alert(AlertType.ERROR);
+			a.setContentText("Missing input values - please enter first");
+			a.show();
+    		return;
+    	}
+    	
+    	// Check if we have too many values in the table
+    	if (tableRowsData.size() >= 8) {
+    		Alert a = new Alert(AlertType.WARNING);
+			a.setContentText("Too many values in table - please remove one to add another.");
+			a.show();
+    		return;
+    	}
+    	
+    	// Add the exchange to the list of exchange rates
+    	addNewExchangeRateTable(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+    	// Re-generate the table to update with the new rate
+    	updateExchangeRateTable(exchangeRateTable);
+    }
+    
+    private void addNewExchangeRateTable(CurrencyModel bCurrency, CurrencyModel tCurrency, 
+    		String inInterval, LocalDate inStartDate, LocalDate inEndDate) {
     	// Insert new Exchange Rate
     	ArrayList<ExchangeRateModel> baseExRates = exchangeRateDAL
     			.getExchangeRatesOverDateRange(bCurrency.getSymbolId(), inInterval, inDates);
@@ -900,9 +929,6 @@ public class Main extends Application {
     
     private void updateExchangeRateTable(GridPane table) {
 //    	// Clear Table
-//    	table.getChildren().clear();
-//    	// Add Header with dates
-//    	addTableDatesHeader(table);
     	resetExchangeRateTable(table);
     	
     	// Loop through the table data and add a row to the grid for each
