@@ -84,6 +84,7 @@ public class Main extends Application {
 	public int selectedRow;
 	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
 	public ArrayList<FriendTableRow> friendList = new ArrayList<FriendTableRow>();
+//	public int selectedFriend; 
 	
 	public DoubleProperty dOpen = new SimpleDoubleProperty(); 
 	public DoubleProperty dClose = new SimpleDoubleProperty();
@@ -385,6 +386,13 @@ public class Main extends Application {
         		FriendModel newFriend = new FriendModel(loggedInUser.getId(), searchUser.getId());
         		newFriend = friendDAL.createFriend(newFriend);
         		
+        		if (newFriend == null) {
+        			Alert a = new Alert(AlertType.ERROR);
+        			a.setContentText("Unable to add friend");
+        			a.show();
+            		return;
+        		}
+        		
         		// Save new friend to global list and table
         		FriendTableRow newRow = friendDAL.getFriendRow(loggedInUser.getId(), newFriend.getFriendId());
         		friendList.add(newRow);
@@ -424,13 +432,34 @@ public class Main extends Application {
 					Label favString = new Label(friendFavorites.get(i).toString());
 					favoriteVBox.getChildren().add(new HBox(favString));
 				}
+//				selectedFriend = friendId;
 			}
 		});
 		
+		Button deleteFriendBtn = new Button("Delete Friend");
+		deleteFriendBtn.setOnAction(e -> {
+			FriendTableRow selectedRow = friendTable.getSelectionModel().getSelectedItem();
+			if (selectedRow == null) {
+				return;
+			}
+			
+			boolean check = friendDAL.deleteFriend(loggedInUser.getId(), selectedRow.friendId);
+			if (!check) {
+				Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Unable to delete friend");
+    			a.show();
+        		return;
+			}
+			
+			friendList.remove(selectedRow);
+    		friendTable.refresh();
+    		friendTable.getItems().removeAll(friendTable.getItems());
+    		friendTable.getItems().addAll(friendList);
+		});
         
         // Create main scene elements
         HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
-        VBox friendList = new VBox(friendTable);
+        VBox friendList = new VBox(friendTable,deleteFriendBtn);
         VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
  
         //Set element placements in root
