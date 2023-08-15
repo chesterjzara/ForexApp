@@ -74,12 +74,19 @@ public class Main extends Application {
 	
 	// Application State Variables
 	public UserModel loggedInUser;
+	
 	public CurrencyModel bCurrency;
+	public ChoiceBox<CurrencyModel> fBCurrency;
 	public CurrencyModel tCurrency;
+	public ChoiceBox<CurrencyModel> fTCurrency;
 	public String inInterval;
+	public ChoiceBox<String> fInterval;
 	public LocalDate inStartDate; 
+	public DatePicker fStartDate;
 	public LocalDate inEndDate; 
+	public DatePicker fEndDate;
 	public ArrayList<LocalDate> inDates;
+	
 	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
 	public int selectedRow;
 	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
@@ -332,25 +339,6 @@ public class Main extends Application {
         return regScene;
 	}
 	
-	private Scene createFavoritesScene(Stage primaryStage) {
-		//Create root holder
-        BorderPane root = new BorderPane();
-       
-        // Create main scene elements - toolbar, exchange rate table, details               
-        VBox favTableSection = createFavTable(primaryStage);
- 
-        //Set element placements in root
-        root.setCenter(favTableSection);
-       
-        // Main scene display settings/staging
-        Color scenePaint = new Color(.99, .234, .234, .76);
-        Scene favScene = new Scene(root, 1000, 500);
-        favScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-        favScene.setFill(scenePaint);
-        
-        return favScene;
-	}
-	
 	private Scene createFriendsScene(Stage primaryStage) {
 		//Create root holder
         BorderPane root = new BorderPane();
@@ -536,6 +524,25 @@ public class Main extends Application {
         return friendScene;
 	}
 	
+	private Scene createFavoritesScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        // Create main scene elements - toolbar, exchange rate table, details               
+        VBox favTableSection = createFavTable(primaryStage);
+ 
+        //Set element placements in root
+        root.setCenter(favTableSection);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene favScene = new Scene(root, 1000, 500);
+        favScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        favScene.setFill(scenePaint);
+        
+        return favScene;
+	}
+	
 	private VBox createFavTable(Stage primaryStage) {
 		
 		favTable = new TableView<>();
@@ -576,7 +583,6 @@ public class Main extends Application {
 		Button btnDelete = new Button("Delete");
 		btnDelete.setOnAction(event -> {
 			UserFavoriteModel delete = favTable.getSelectionModel().getSelectedItem();
-			
 			if (delete == null) {
 				return;
 			}
@@ -604,13 +610,23 @@ public class Main extends Application {
 		});
 		
         Button btnAdd = new Button("Add to Table");
-        btnAdd.setDisable(true);
+        btnAdd.setOnAction(e -> {
+        	UserFavoriteModel addFavorite = favTable.getSelectionModel().getSelectedItem();
+        	if (addFavorite == null) {
+				return;
+			}
+        	
+        	parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+        	
+        });
+        
         Button btnAddDate = new Button("Add with Date");
         btnAddDate.setDisable(true);
         
         Button btnBack= new Button("Back");
         btnBack.setOnAction(event -> {
         	updateExchangeRateTable(exchangeRateTable);
+        	clearExchangeInputs();
         	primaryStage.setScene(mainScene);
         });
 		
@@ -899,6 +915,18 @@ public class Main extends Application {
     	addNewExchangeRateTable(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
     	// Re-generate the table to update with the new rate
     	updateExchangeRateTable(exchangeRateTable);
+    }
+    
+    private void clearExchangeInputs() {
+    	tCurrency = null;
+    	bCurrency= null;
+    	inInterval = null;
+    	inStartDate = null;
+    	inEndDate = null;
+    	inDates = null;
+    	
+    	
+    	
     }
     
     private void addNewExchangeRateTable(CurrencyModel bCurrency, CurrencyModel tCurrency, 
@@ -1224,13 +1252,8 @@ public class Main extends Application {
     
     private GridPane createExchangeRateTable() {
         GridPane gridPane = new GridPane();
-        // gridPane.setGridLinesVisible(true);   // TODO - debugging
-        
         // Add Empty Date Headers
         addTableDatesEmptyHeader(gridPane);
-        
-        // TODO - add existing user favorites instead of blanks
-
         return gridPane;
     }
     
