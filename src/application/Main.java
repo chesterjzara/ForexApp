@@ -74,12 +74,19 @@ public class Main extends Application {
 	
 	// Application State Variables
 	public UserModel loggedInUser;
+	
 	public CurrencyModel bCurrency;
+	public ChoiceBox<CurrencyModel> fBCurrency;
 	public CurrencyModel tCurrency;
+	public ChoiceBox<CurrencyModel> fTCurrency;
 	public String inInterval;
+	public ChoiceBox<String> fInterval;
 	public LocalDate inStartDate; 
+	public DatePicker fStartDate;
 	public LocalDate inEndDate; 
+	public DatePicker fEndDate;
 	public ArrayList<LocalDate> inDates;
+	
 	public ArrayList<ExchangeRateRow> tableRowsData = new ArrayList<ExchangeRateRow>();
 	public int selectedRow;
 	public ArrayList<UserFavoriteModel> favoriteList = new ArrayList<UserFavoriteModel>();
@@ -332,25 +339,6 @@ public class Main extends Application {
         return regScene;
 	}
 	
-	private Scene createFavoritesScene(Stage primaryStage) {
-		//Create root holder
-        BorderPane root = new BorderPane();
-       
-        // Create main scene elements - toolbar, exchange rate table, details               
-        VBox favTableSection = createFavTable(primaryStage);
- 
-        //Set element placements in root
-        root.setCenter(favTableSection);
-       
-        // Main scene display settings/staging
-        Color scenePaint = new Color(.99, .234, .234, .76);
-        Scene favScene = new Scene(root, 1000, 500);
-        favScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-        favScene.setFill(scenePaint);
-        
-        return favScene;
-	}
-	
 	private Scene createFriendsScene(Stage primaryStage) {
 		//Create root holder
         BorderPane root = new BorderPane();
@@ -359,12 +347,13 @@ public class Main extends Application {
         backBtn.setOnAction(event -> {
         	primaryStage.setScene(mainScene);
         });
-        VBox leftToolbar = new VBox(backBtn);
         
         Label searchLabel = new Label("Search Friends: ");
         TextField searchField = new TextField();
         Button searchBtn = new Button("Add Friend");
         HBox searchBox = new HBox(searchLabel, searchField, searchBtn);
+        searchBox.setSpacing( 10.0d );
+        searchBox.setPadding( new Insets(2) );
         
         StringProperty searchText = new SimpleStringProperty();
         searchText.bind(searchField.textProperty());
@@ -503,9 +492,14 @@ public class Main extends Application {
 			}	
 		});
         
+		HBox leftToolbar = new HBox(backBtn, deleteFriendBtn);
+		leftToolbar.setSpacing( 10.0d );
+		leftToolbar.setAlignment(Pos.CENTER_LEFT );
+		leftToolbar.setPadding( new Insets(2) );
+		
         // Create main scene elements
-        HBox friendToolbar = new HBox(leftToolbar, centerToolbar);               
-        VBox friendList = new VBox(friendTable,deleteFriendBtn);
+        HBox friendToolbar = new HBox(centerToolbar);               
+        VBox friendList = new VBox(friendTable, leftToolbar);
         VBox friendFavorites = new VBox(favoriteListHeader,favoriteVBox);
         VBox friendSuggest = new VBox(suggestLabel, suggestBtnBox, suggestionVBox);
  
@@ -528,6 +522,25 @@ public class Main extends Application {
         friendScene.setFill(scenePaint);
         
         return friendScene;
+	}
+	
+	private Scene createFavoritesScene(Stage primaryStage) {
+		//Create root holder
+        BorderPane root = new BorderPane();
+       
+        // Create main scene elements - toolbar, exchange rate table, details               
+        VBox favTableSection = createFavTable(primaryStage);
+ 
+        //Set element placements in root
+        root.setCenter(favTableSection);
+       
+        // Main scene display settings/staging
+        Color scenePaint = new Color(.99, .234, .234, .76);
+        Scene favScene = new Scene(root, 1000, 500);
+        favScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        favScene.setFill(scenePaint);
+        
+        return favScene;
 	}
 	
 	private VBox createFavTable(Stage primaryStage) {
@@ -570,7 +583,6 @@ public class Main extends Application {
 		Button btnDelete = new Button("Delete");
 		btnDelete.setOnAction(event -> {
 			UserFavoriteModel delete = favTable.getSelectionModel().getSelectedItem();
-			
 			if (delete == null) {
 				return;
 			}
@@ -599,6 +611,18 @@ public class Main extends Application {
 		
         Button btnAdd = new Button("Add to Table");
         btnAdd.setDisable(true);
+        btnAdd.setOnAction(e -> {
+        	UserFavoriteModel addFavorite = favTable.getSelectionModel().getSelectedItem();
+        	if (addFavorite == null) {
+				return;
+			}
+        	
+        	// If we are going to load in the favorite - clear input fields/values 
+        	//clearExchangeInputs();
+        	//parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+        	
+        });
+        
         Button btnAddDate = new Button("Add with Date");
         btnAddDate.setDisable(true);
         
@@ -644,7 +668,8 @@ public class Main extends Application {
     	//Base Currency Selection
     	Label baseCurrencyLabel = new Label("Base Currency:");
     	ChoiceBox<CurrencyModel> baseCurrChoice = new ChoiceBox<>();
-
+    	fBCurrency = baseCurrChoice;
+    	
     	// Get list of base currencies
     	List<CurrencyModel> currencyChoices = currencyDAL.getCurrencyList();
     	
@@ -667,20 +692,21 @@ public class Main extends Application {
     	baseCurrChoice.getItems().addAll(currencyChoices);
     	HBox bCurrHBox = new HBox(baseCurrencyLabel, baseCurrChoice);
     	bCurrHBox.setSpacing( 10.0d );
-    	bCurrHBox.setAlignment(Pos.CENTER );
+    	bCurrHBox.setAlignment(Pos.CENTER_LEFT );
     	bCurrHBox.setPadding( new Insets(2) );
     	baseCurrChoice.setOnAction(event -> bCurrency = baseCurrChoice.getValue());
     	
     	// Target Currency Selection
     	Label targetCurrencyLabel = new Label("Target Currency:");
     	ChoiceBox<CurrencyModel> targetCurrChoice = new ChoiceBox<>();
+    	fTCurrency = targetCurrChoice;
     	targetCurrChoice.getItems().addAll(currencyChoices);
     	targetCurrChoice.setOnAction(event -> tCurrency = targetCurrChoice.getValue());
     	
     	// Put target currency and label in an HBox to line up
     	HBox tCurrHBox = new HBox(targetCurrencyLabel, targetCurrChoice);
     	tCurrHBox.setSpacing( 10.0d );
-    	tCurrHBox.setAlignment(Pos.CENTER );
+    	tCurrHBox.setAlignment(Pos.CENTER_LEFT );
     	tCurrHBox.setPadding( new Insets(2) );
         
         //Add Left section GUI elements as Vbox children
@@ -699,27 +725,30 @@ public class Main extends Application {
     	ObservableList <String> intervalOptions = 
     			FXCollections.observableArrayList("day", "week", "month");
     	ChoiceBox<String> intervalChoice = new ChoiceBox<String>(intervalOptions);
+    	fInterval = intervalChoice;
     	
     	HBox intervalBox = new HBox(intervalLabel, intervalChoice);
     	intervalBox.setSpacing( 10.0d );
-    	intervalBox.setAlignment(Pos.CENTER );
+    	intervalBox.setAlignment(Pos.CENTER_LEFT );
     	intervalBox.setPadding( new Insets(2) );
     	toolBarVBoxCenter.getChildren().add(intervalBox);
     	
     	// End Date Selection
     	Label endLabel = new Label("End Date:");
     	DatePicker endField = new DatePicker();
+    	fEndDate = endField;
     	LocalDate lastDate = LocalDate.of(2023, 7, 6);
     	endField.setValue(lastDate);
     	endField.setDisable(true);
     	HBox endBox = new HBox(endLabel, endField);
     	endBox.setSpacing( 10.0d );
-    	endBox.setAlignment(Pos.CENTER );
+    	endBox.setAlignment(Pos.CENTER_LEFT );
     	endBox.setPadding( new Insets(2) );
     	
     	// Start Date Selection
     	Label startLabel = new Label("Start Date:");
     	DatePicker startField = new DatePicker();
+    	fStartDate = startField;
     	LocalDate initialDate = LocalDate.of(2019, 6, 30);
     	startField.setValue(initialDate);
     	startField.setDayCellFactory(field -> new DateCell() {
@@ -735,7 +764,7 @@ public class Main extends Application {
     	});
     	HBox startBox = new HBox(startLabel, startField);
     	startBox.setSpacing( 10.0d );
-    	startBox.setAlignment(Pos.CENTER );
+    	startBox.setAlignment(Pos.CENTER_LEFT );
     	startBox.setPadding( new Insets(2) );
     	
     	toolBarVBoxCenter.getChildren().add(startBox);
@@ -820,20 +849,30 @@ public class Main extends Application {
         
         Button addButton = new Button("➕ Add Exchange Rate");
         addButton.setOnAction(event -> {
-        	System.out.println("Add currency exchange!");
-
-        	// Check for all required fields
-        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
-        		Alert a = new Alert(AlertType.ERROR);
-    			a.setContentText("Missing input values - please enter first");
-    			a.show();
-        		return;
-        	}
-        	
-        	// Add the exchange to the list of exchange rates
-        	addNewExchangeRateTable();
-        	// Re-generate the table to update with the new rate
-        	updateExchangeRateTable(exchangeRateTable);
+        	// Requires: bCurrency, tCurrency, inInterval, inStartDate, inEndDate
+        	parentAddExchangeRate(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+//        	System.out.println("Add currency exchange!");
+//
+//        	// Check for all required fields
+//        	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+//        		Alert a = new Alert(AlertType.ERROR);
+//    			a.setContentText("Missing input values - please enter first");
+//    			a.show();
+//        		return;
+//        	}
+//        	
+//        	// Check if we have too many values in the table
+//        	if (tableRowsData.size() >= 8) {
+//        		Alert a = new Alert(AlertType.WARNING);
+//    			a.setContentText("Too many values in table - please remove one to add another.");
+//    			a.show();
+//        		return;
+//        	}
+//        	
+//        	// Add the exchange to the list of exchange rates
+//        	addNewExchangeRateTable();
+//        	// Re-generate the table to update with the new rate
+//        	updateExchangeRateTable(exchangeRateTable);
         });
         
         Button friendButton = new Button("Friends");
@@ -852,10 +891,56 @@ public class Main extends Application {
         toolBarVBoxRight.getChildren().add(addButton);
         toolBarVBoxRight.getChildren().add(friendButton);
 
+        toolBarVBoxRight.setSpacing( 2.0d );
+        toolBarVBoxRight.setAlignment(Pos.CENTER_LEFT );
+        toolBarVBoxRight.setPadding( new Insets(2) );
+        
     	return toolBarVBoxRight;
     }
     
-    private void addNewExchangeRateTable() {
+    private void parentAddExchangeRate(CurrencyModel bCurrency, CurrencyModel tCurrency, 
+    		String inInterval, LocalDate inStartDate, LocalDate inEndDate) {
+    	System.out.println("Add currency exchange!");
+
+    	// Check for all required fields
+    	if (bCurrency == null || tCurrency == null || inInterval == null || inStartDate == null || inEndDate == null) {
+    		Alert a = new Alert(AlertType.ERROR);
+			a.setContentText("Missing input values - please enter first");
+			a.show();
+    		return;
+    	}
+    	
+    	// Check if we have too many values in the table
+    	if (tableRowsData.size() >= 8) {
+    		Alert a = new Alert(AlertType.WARNING);
+			a.setContentText("Too many values in table - please remove one to add another.");
+			a.show();
+    		return;
+    	}
+    	
+    	// Add the exchange to the list of exchange rates
+    	addNewExchangeRateTable(bCurrency, tCurrency, inInterval, inStartDate, inEndDate);
+    	// Re-generate the table to update with the new rate
+    	updateExchangeRateTable(exchangeRateTable);
+    }
+    
+    private void clearExchangeInputs() {
+    	tCurrency = null;
+    	bCurrency= null;
+    	inInterval = null;
+    	inStartDate = null;
+    	inEndDate = null;
+    	inDates = null;
+    	
+    	fBCurrency.setValue(null);
+    	fTCurrency.setValue(null);
+    	fInterval.setValue(null);
+    	fStartDate.setValue(null);
+    	fEndDate.setValue(null);
+    }
+    
+    private void addNewExchangeRateTable(CurrencyModel bCurrency, CurrencyModel tCurrency, 
+    		String inInterval, LocalDate inStartDate, LocalDate inEndDate) {
     	// Insert new Exchange Rate
     	ArrayList<ExchangeRateModel> baseExRates = exchangeRateDAL
     			.getExchangeRatesOverDateRange(bCurrency.getSymbolId(), inInterval, inDates);
@@ -882,9 +967,6 @@ public class Main extends Application {
     
     private void updateExchangeRateTable(GridPane table) {
 //    	// Clear Table
-//    	table.getChildren().clear();
-//    	// Add Header with dates
-//    	addTableDatesHeader(table);
     	resetExchangeRateTable(table);
     	
     	// Loop through the table data and add a row to the grid for each
@@ -896,7 +978,7 @@ public class Main extends Application {
     		
     		Label buttonLabel = new Label(currentRow.exchangeRateLabel());
     		Button favButton = new Button(isFav ? "Unfav": "Fav");
-    		HBox hButtonBox = new HBox (favButton, buttonLabel);
+    		HBox hButtonBox = new HBox (5, favButton, buttonLabel);
     		VBox vButtonBox = new VBox(hButtonBox);
     		vButtonBox.setPadding( new Insets(10) );
     		table.add(vButtonBox, 0, row);
@@ -1002,9 +1084,8 @@ public class Main extends Application {
         	eRow.isFavorite = true;
     	}
     	
-    	// Reload the table?
+    	// Reload the table
     	updateExchangeRateTable(exchangeRateTable);
-    	
     }
     
     private void addTableDatesHeader(GridPane table) {
@@ -1087,44 +1168,46 @@ public class Main extends Application {
 	   	country1.textProperty().bind(dCountry1);
 	   	Label country2 = new Label();
 	   	country2.textProperty().bind(dCountry2);
-	   	HBox countryBox = new HBox(countryLabel, country1, country2);
+	   	HBox countryBox = new HBox(10, countryLabel, country1, country2);
 	   	rightPane.getChildren().add(countryBox);
 	   	
 	   	// GDP
 	   	Label gdpLabel = new Label(" - GDP: ");
 	   	Label gdp1 = new Label();
-	   	gdp1.textProperty().bind(Bindings.format("%.2f", dGdp1));
+	   	gdp1.textProperty().bind(Bindings.format("%,.2f", dGdp1));
 	   	Label gdp2 = new Label();
-	   	gdp2.textProperty().bind(Bindings.format("%.2f", dGdp2));
-	   	HBox gdpBox = new HBox(gdpLabel, gdp1, gdp2);
+	   	gdp2.textProperty().bind(Bindings.format("%,.2f", dGdp2));
+	   	HBox gdpBox = new HBox(10, gdpLabel, gdp1, gdp2);
 	   	rightPane.getChildren().add(gdpBox);
 	   	
 	   	// Debt
 	   	Label debtLabel = new Label(" - Debt: ");
 	   	Label debt1 = new Label();
-	   	debt1.textProperty().bind(Bindings.format("%.2f", dDebt1));
+	   	debt1.textProperty().bind(Bindings.format("%,.2f", dDebt1));
 	   	Label debt2 = new Label();
-	   	debt2.textProperty().bind(Bindings.format("%.2f", dDebt2));
-	   	HBox debtBox = new HBox(debtLabel, debt1, debt2);
+	   	debt2.textProperty().bind(Bindings.format("%,.2f", dDebt2));
+	   	HBox debtBox = new HBox(10, debtLabel, debt1, debt2);
 	   	rightPane.getChildren().add(debtBox);
 	   	
 	   	// Land Area
 	   	Label landAreaLabel = new Label(" - Land Area: ");
 	   	Label landArea1 = new Label();
-	   	landArea1.textProperty().bind(Bindings.format("%d", dLandArea1));
+	   	landArea1.textProperty().bind(Bindings.format("%,d", dLandArea1));
 	   	Label landArea2 = new Label();
-	   	landArea2.textProperty().bind(Bindings.format("%d", dLandArea2));
-	   	HBox landAreaBox = new HBox(landAreaLabel, landArea1, landArea2);
+	   	landArea2.textProperty().bind(Bindings.format("%,d", dLandArea2));
+	   	HBox landAreaBox = new HBox(10, landAreaLabel, landArea1, landArea2);
 	   	rightPane.getChildren().add(landAreaBox);
 	   	
 	   	// Population Density
 	   	Label densityLabel = new Label(" - Density: ");
 	   	Label density1 = new Label();
-	   	density1.textProperty().bind(Bindings.format("%.2f", dDensity1));
+	   	density1.textProperty().bind(Bindings.format("%,.2f", dDensity1));
 	   	Label density2 = new Label();
-	   	density2.textProperty().bind(Bindings.format("%.2f", dDensity2));
-	   	HBox densityBox = new HBox(densityLabel, density1, density2);
+	   	density2.textProperty().bind(Bindings.format("%,.2f", dDensity2));
+	   	HBox densityBox = new HBox(10, densityLabel, density1, density2);
 	   	rightPane.getChildren().add(densityBox);
+	   	
+	   	rightPane.setPadding( new Insets(10) );
 	   	
     	return rightPane;
     }
@@ -1179,13 +1262,8 @@ public class Main extends Application {
     
     private GridPane createExchangeRateTable() {
         GridPane gridPane = new GridPane();
-        // gridPane.setGridLinesVisible(true);   // TODO - debugging
-        
         // Add Empty Date Headers
         addTableDatesEmptyHeader(gridPane);
-        
-        // TODO - add existing user favorites instead of blanks
-
         return gridPane;
     }
     
