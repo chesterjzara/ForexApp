@@ -286,6 +286,15 @@ public class Main extends Application {
         createUserButton.setOnAction(event -> {
         	System.out.println("Reg user!");
         	
+        	if (zipField.getText().isBlank() ||  passwordField.getText().isBlank() 
+        			|| emailField.getText().isBlank() || nameField.getText().isBlank()) {
+        		Alert a = new Alert(AlertType.ERROR);
+    			a.setContentText("Missing registration details");
+    			a.show();
+        		return;
+        	}
+        	
+        	
         	// Check Zip code - If bad - show alert, else continue
         	int inZipCode = Integer.parseInt(zipField.getText());
         	ZipCodeModel checkZip = zipCodeDAL.getZipCode(inZipCode); 
